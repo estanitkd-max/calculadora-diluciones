@@ -73,67 +73,66 @@ export default function App() {
     tipoProducto === "puro" ? calcularPuro() : null;
 
   const generarFicha = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = 650;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = 650;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
 
-    ctx.fillStyle = "#ffffff";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-const logo = new Image();
-logo.src = window.location.origin + "/logo.png";
+  const logo = new Image();
+  logo.src = window.location.origin + "/logo.png";
 
-logo.onload = () => {
-  // Dibujar logo
-  ctx.drawImage(logo, canvas.width - 320, 20, 280, 120);
+  logo.onload = () => {
+    ctx.drawImage(logo, canvas.width - 320, 20, 280, 120);
+    dibujarTexto();
+  };
 
-  dibujarTexto();
+  logo.onerror = () => {
+    dibujarTexto();
+  };
+
+  function dibujarTexto() {
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 36px Arial";
+    ctx.fillText("Ficha Técnica", 50, 80);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "22px Arial";
+
+    let y = 180;
+
+    if (nombreProducto) {
+      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
+      y += 40;
+    }
+
+    if (tipoProducto === "diluir" && resultadoDilucion) {
+      ctx.fillText(`Producto: ${resultadoDilucion.productoMl} ml`, 50, y);
+      y += 40;
+      ctx.fillText(`Agua: ${resultadoDilucion.aguaMl} ml`, 50, y);
+      y += 40;
+      ctx.fillText(`Costo x litro: $${resultadoDilucion.costoPorLitro}`, 50, y);
+      y += 40;
+
+      ctx.fillStyle = "#b91c1c";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(
+        "Siempre se agrega primero el agua, por cuestiones de seguridad",
+        50,
+        y
+      );
+    }
+
+    if (tipoProducto === "puro" && resultadoPuro) {
+      ctx.fillText(`m² totales: ${resultadoPuro.m2Totales}`, 50, y);
+      y += 40;
+      ctx.fillText(`Costo x m²: $${resultadoPuro.costoPorM2}`, 50, y);
+    }
+
+    const dataUrl = canvas.toDataURL("image/png");
+    setImagenGenerada(dataUrl);
+  }
 };
-
-logo.onerror = () => {
-  dibujarTexto();
-};
-
-function dibujarTexto() {
-  ctx.fillStyle = "#14532d";
-  ctx.font = "bold 36px Arial";
-  ctx.fillText("Ficha Técnica", 50, 80);
-
-  ctx.fillStyle = "#000000";
-  ctx.font = "22px Arial";
-
-  let y = 170;
-
-  if (nombreProducto) {
-    ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
-    y += 40;
-  }
-
-  if (tipoProducto === "diluir" && resultadoDilucion) {
-    ctx.fillText(`Producto: ${resultadoDilucion.productoMl} ml`, 50, y);
-    y += 40;
-    ctx.fillText(`Agua: ${resultadoDilucion.aguaMl} ml`, 50, y);
-    y += 40;
-    ctx.fillText(`Costo x litro: $${resultadoDilucion.costoPorLitro}`, 50, y);
-    y += 40;
-
-    ctx.fillStyle = "#b91c1c";
-    ctx.font = "bold 18px Arial";
-    ctx.fillText(
-      "Siempre se agrega primero el agua, por cuestiones de seguridad",
-      50,
-      y
-    );
-  }
-
-  if (tipoProducto === "puro" && resultadoPuro) {
-    ctx.fillText(`m² totales: ${resultadoPuro.m2Totales}`, 50, y);
-    y += 40;
-    ctx.fillText(`Costo x m²: $${resultadoPuro.costoPorM2}`, 50, y);
-  }
-
-  const dataUrl = canvas.toDataURL("image/png");
-  setImagenGenerada(dataUrl);
-}
