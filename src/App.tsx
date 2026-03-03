@@ -80,265 +80,60 @@ export default function App() {
     if (!ctx) return;
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#14532d";
-    ctx.font = "bold 36px Arial";
-    ctx.fillText("Ficha Técnica", 50, 80);
+const logo = new Image();
+logo.src = window.location.origin + "/logo.png";
 
-    ctx.fillStyle = "#000000";
-    ctx.font = "22px Arial";
+logo.onload = () => {
+  // Dibujar logo
+  ctx.drawImage(logo, canvas.width - 320, 20, 280, 120);
 
-    let y = 150;
+  dibujarTexto();
+};
 
-    if (nombreProducto) {
-      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
-      y += 40;
-    }
+logo.onerror = () => {
+  dibujarTexto();
+};
 
-    if (tipoProducto === "diluir" && resultadoDilucion) {
-      const textoDilucion =
-        modoDilucion === "proporcion"
-          ? `1:${valorDilucion}`
-          : `${valorDilucion}%`;
+function dibujarTexto() {
+  ctx.fillStyle = "#14532d";
+  ctx.font = "bold 36px Arial";
+  ctx.fillText("Ficha Técnica", 50, 80);
 
-      ctx.fillText(`Dilución: ${textoDilucion}`, 50, y);
-      y += 40;
+  ctx.fillStyle = "#000000";
+  ctx.font = "22px Arial";
 
-      ctx.fillText(`Preparar: ${litrosPreparar} L`, 50, y);
-      y += 40;
+  let y = 170;
 
-      ctx.fillText(`Producto: ${resultadoDilucion.productoMl} ml`, 50, y);
-      y += 40;
+  if (nombreProducto) {
+    ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
+    y += 40;
+  }
 
-      ctx.fillText(`Agua: ${resultadoDilucion.aguaMl} ml`, 50, y);
-      y += 40;
+  if (tipoProducto === "diluir" && resultadoDilucion) {
+    ctx.fillText(`Producto: ${resultadoDilucion.productoMl} ml`, 50, y);
+    y += 40;
+    ctx.fillText(`Agua: ${resultadoDilucion.aguaMl} ml`, 50, y);
+    y += 40;
+    ctx.fillText(`Costo x litro: $${resultadoDilucion.costoPorLitro}`, 50, y);
+    y += 40;
 
-      ctx.fillText(
-        `Costo por litro listo: $${resultadoDilucion.costoPorLitro}`,
-        50,
-        y
-      );
-      y += 60;
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(
+      "Siempre se agrega primero el agua, por cuestiones de seguridad",
+      50,
+      y
+    );
+  }
 
-      // Leyenda de seguridad
-      ctx.fillStyle = "#b91c1c";
-      ctx.font = "bold 20px Arial";
-      ctx.fillText(
-        "Siempre se agrega primero el agua, por cuestiones de seguridad.",
-        50,
-        y
-      );
-    }
+  if (tipoProducto === "puro" && resultadoPuro) {
+    ctx.fillText(`m² totales: ${resultadoPuro.m2Totales}`, 50, y);
+    y += 40;
+    ctx.fillText(`Costo x m²: $${resultadoPuro.costoPorM2}`, 50, y);
+  }
 
-    if (tipoProducto === "puro" && resultadoPuro) {
-      ctx.fillText(`m² totales: ${resultadoPuro.m2Totales}`, 50, y);
-      y += 40;
-      ctx.fillText(`Costo por m²: $${resultadoPuro.costoPorM2}`, 50, y);
-    }
-
-    const dataUrl = canvas.toDataURL("image/png");
-    setImagenGenerada(dataUrl);
-  };
-
-  return (
-    <div
-      style={{
-        padding: 24,
-        maxWidth: 650,
-        margin: "auto",
-        fontFamily: "Arial",
-      }}
-    >
-      <h2 style={{ color: "#14532d" }}>Calculadora Profesional</h2>
-
-      <button
-        onClick={limpiarTodo}
-        style={{
-          marginBottom: 20,
-          padding: 8,
-          backgroundColor: "#6b7280",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-          cursor: "pointer",
-        }}
-      >
-        Limpiar todo
-      </button>
-
-      <div style={{ marginBottom: 20 }}>
-        <label><b>Tipo de producto:</b></label><br />
-        <label>
-          <input
-            type="radio"
-            checked={tipoProducto === "diluir"}
-            onChange={() => setTipoProducto("diluir")}
-          /> Producto para diluir
-        </label>
-        <br />
-        <label>
-          <input
-            type="radio"
-            checked={tipoProducto === "puro"}
-            onChange={() => setTipoProducto("puro")}
-          /> Producto puro / Cera
-        </label>
-      </div>
-
-      <div style={{ marginBottom: 15 }}>
-        <label>Nombre del producto (opcional)</label>
-        <input
-          type="text"
-          value={nombreProducto}
-          onChange={(e) => setNombreProducto(e.target.value)}
-          style={{ width: "100%", padding: 8 }}
-        />
-      </div>
-
-      {tipoProducto === "diluir" && (
-        <>
-          <div style={{ marginBottom: 15 }}>
-            <label><b>Modo:</b></label><br />
-            <label>
-              <input
-                type="radio"
-                checked={modoDilucion === "proporcion"}
-                onChange={() => setModoDilucion("proporcion")}
-              /> 1:X
-            </label>
-            <br />
-            <label>
-              <input
-                type="radio"
-                checked={modoDilucion === "porcentaje"}
-                onChange={() => setModoDilucion("porcentaje")}
-              /> %
-            </label>
-          </div>
-
-          <div style={{ marginBottom: 15 }}>
-            <label>Valor de dilución</label>
-            <input
-              type="number"
-              value={valorDilucion}
-              onChange={(e) => setValorDilucion(Number(e.target.value))}
-              style={{ width: "100%", padding: 8 }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 15 }}>
-            <label>Litros a preparar</label>
-            <input
-              type="number"
-              value={litrosPreparar}
-              onChange={(e) => setLitrosPreparar(Number(e.target.value))}
-              style={{ width: "100%", padding: 8 }}
-            />
-          </div>
-        </>
-      )}
-
-      <div style={{ marginBottom: 15 }}>
-        <label>Litros del bidón</label>
-        <input
-          type="number"
-          value={litrosBidon}
-          onChange={(e) => setLitrosBidon(Number(e.target.value))}
-          style={{ width: "100%", padding: 8 }}
-        />
-      </div>
-
-      <div style={{ marginBottom: 15 }}>
-        <label>Precio del bidón</label>
-        <input
-          type="number"
-          value={precioBidon}
-          onChange={(e) => setPrecioBidon(Number(e.target.value))}
-          style={{ width: "100%", padding: 8 }}
-        />
-      </div>
-
-      {tipoProducto === "puro" && (
-        <div style={{ marginBottom: 15 }}>
-          <label>m² que cubre 1 litro</label>
-          <input
-            type="number"
-            value={m2PorLitro}
-            onChange={(e) => setM2PorLitro(Number(e.target.value))}
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
-      )}
-
-      <div
-        style={{
-          marginTop: 30,
-          padding: 20,
-          backgroundColor: "#f3f4f6",
-          borderRadius: 10,
-        }}
-      >
-        <h3 style={{ color: "#14532d" }}>Resultado</h3>
-
-        {tipoProducto === "diluir" && resultadoDilucion && (
-          <>
-            <p><b>Producto:</b> {resultadoDilucion.productoMl} ml</p>
-            <p><b>Agua:</b> {resultadoDilucion.aguaMl} ml</p>
-            <p><b>Costo por litro listo:</b> ${resultadoDilucion.costoPorLitro}</p>
-          </>
-        )}
-
-        {tipoProducto === "puro" && resultadoPuro && (
-          <>
-            <p><b>m² totales:</b> {resultadoPuro.m2Totales}</p>
-            <p><b>Costo por m²:</b> ${resultadoPuro.costoPorM2}</p>
-          </>
-        )}
-      </div>
-
-      <button
-        onClick={generarFicha}
-        style={{
-          marginTop: 20,
-          width: "100%",
-          padding: 12,
-          backgroundColor: "#14532d",
-          color: "white",
-          border: "none",
-          borderRadius: 8,
-          fontSize: 16,
-          cursor: "pointer",
-        }}
-      >
-        Generar ficha técnica
-      </button>
-
-      {imagenGenerada && (
-        <div style={{ marginTop: 30 }}>
-          <h4>Vista previa:</h4>
-          <img
-            src={imagenGenerada}
-            alt="Ficha técnica"
-            style={{ width: "100%", marginTop: 10, borderRadius: 8 }}
-          />
-          <a
-            href={imagenGenerada}
-            download="ficha-tecnica.png"
-            style={{
-              display: "inline-block",
-              marginTop: 15,
-              padding: 10,
-              backgroundColor: "#14532d",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: 6,
-            }}
-          >
-            Descargar imagen
-          </a>
-        </div>
-      )}
-    </div>
-  );
+  const dataUrl = canvas.toDataURL("image/png");
+  setImagenGenerada(dataUrl);
 }
