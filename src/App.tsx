@@ -12,8 +12,8 @@ export default function App() {
 
   const generarFicha = () => {
     const canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = 650;
+    canvas.width = 900;
+    canvas.height = 600;
 
     const ctx = canvas.getContext("2d")!;
 
@@ -43,46 +43,74 @@ export default function App() {
       aguaMl = Math.round(aguaMl);
     }
 
-    const costoPorLitro = (precioBidon / litrosBidon) * productoLitros;
+    const costoPorLitro = precioBidon
+      ? (precioBidon / litrosBidon) * productoLitros
+      : null;
+
+    // TITULO
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 34px Arial";
+    ctx.fillText("Ficha de Dilución", 50, 60);
+
+    // LINEA DIVISORIA
+    ctx.strokeStyle = "#ddd";
+    ctx.beginPath();
+    ctx.moveTo(50, 80);
+    ctx.lineTo(850, 80);
+    ctx.stroke();
+
+    // COLUMNA IZQUIERDA
+    let yLeft = 130;
 
     ctx.fillStyle = "#14532d";
-    ctx.font = "bold 36px Arial";
-    ctx.fillText("Ficha Técnica", 50, 80);
+    ctx.font = "bold 22px Arial";
+    ctx.fillText("Dilución del producto", 50, yLeft);
 
+    yLeft += 40;
     ctx.fillStyle = "#000";
-    ctx.font = "22px Arial";
-
-    let y = 150;
+    ctx.font = "20px Arial";
 
     if (nombreProducto) {
-      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
-      y += 40;
+      ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
+      yLeft += 35;
     }
 
     const textoDilucion =
       modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
 
-    ctx.fillText(`Dilución: ${textoDilucion}`, 50, y);
-    y += 40;
+    ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
+    yLeft += 35;
 
-    ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, y);
-    y += 40;
+    ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
+    yLeft += 35;
 
-    ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
-    y += 40;
+    ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
+    yLeft += 35;
 
-    ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
-    y += 40;
+    ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
 
-    ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 50, y);
-    y += 50;
+    // COLUMNA DERECHA (COSTOS)
+    if (costoPorLitro !== null) {
+      let yRight = 130;
 
+      ctx.fillStyle = "#14532d";
+      ctx.font = "bold 22px Arial";
+      ctx.fillText("Costos", 500, yRight);
+
+      yRight += 40;
+      ctx.fillStyle = "#000";
+      ctx.font = "20px Arial";
+
+      ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
+    }
+
+    // NOTA SEGURIDAD
     ctx.fillStyle = "#b91c1c";
-    ctx.font = "bold 18px Arial";
+    ctx.font = "bold 16px Arial";
     ctx.fillText(
       "Siempre agregar primero el agua por seguridad",
       50,
-      y
+      550
     );
 
     const dataUrl = canvas.toDataURL("image/png");
@@ -90,127 +118,47 @@ export default function App() {
   };
 
   return (
-    <div
-      style={{
-        background: "#f5f5f5",
-        minHeight: "100vh",
-        padding: 20,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 500,
-          background: "white",
-          padding: 25,
-          borderRadius: 16,
-          boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <h2 style={{ color: "#14532d", margin: 0 }}>Suñé Distribuciones</h2>
-          <p style={{ fontSize: 14, color: "#777" }}>
-            Calculadora profesional de diluciones
-          </p>
-        </div>
+    <div style={{ background: "#f5f5f5", minHeight: "100vh", padding: 20, display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 500, background: "white", padding: 25, borderRadius: 16, boxShadow: "0 8px 25px rgba(0,0,0,0.08)" }}>
+        <h2 style={{ color: "#14532d" }}>Suñé Distribuciones</h2>
 
-        {/** Inputs */}
         <Input label="Nombre del producto">
-          <input
-            type="text"
-            value={nombreProducto}
-            onChange={(e) => setNombreProducto(e.target.value)}
-            style={inputStyle}
-          />
+          <input type="text" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} style={inputStyle} />
         </Input>
 
         <Input label="Tipo de dilución">
           <div style={{ display: "flex", gap: 15 }}>
-            <label>
-              <input
-                type="radio"
-                checked={modoDilucion === "proporcion"}
-                onChange={() => setModoDilucion("proporcion")}
-              /> 1:X
-            </label>
-            <label>
-              <input
-                type="radio"
-                checked={modoDilucion === "porcentaje"}
-                onChange={() => setModoDilucion("porcentaje")}
-              /> %
-            </label>
+            <label><input type="radio" checked={modoDilucion === "proporcion"} onChange={() => setModoDilucion("proporcion")} /> 1:X</label>
+            <label><input type="radio" checked={modoDilucion === "porcentaje"} onChange={() => setModoDilucion("porcentaje")} /> %</label>
           </div>
         </Input>
 
         <Input label={modoDilucion === "proporcion" ? "Dilución (1:X)" : "Porcentaje (%)"}>
-          <input
-            type="number"
-            value={dilucion}
-            onChange={(e) => setDilucion(Number(e.target.value))}
-            style={inputStyle}
-          />
+          <input type="number" value={dilucion} onChange={(e) => setDilucion(Number(e.target.value))} style={inputStyle} />
         </Input>
 
         <Input label="Litros a preparar">
-          <input
-            type="number"
-            value={litrosPreparar}
-            onChange={(e) => setLitrosPreparar(Number(e.target.value))}
-            style={inputStyle}
-          />
+          <input type="number" value={litrosPreparar} onChange={(e) => setLitrosPreparar(Number(e.target.value))} style={inputStyle} />
         </Input>
 
         <Input label="Litros del bidón">
-          <input
-            type="number"
-            value={litrosBidon}
-            onChange={(e) => setLitrosBidon(Number(e.target.value))}
-            style={inputStyle}
-          />
+          <input type="number" value={litrosBidon} onChange={(e) => setLitrosBidon(Number(e.target.value))} style={inputStyle} />
         </Input>
 
         <Input label="Precio del bidón">
-          <input
-            type="number"
-            value={precioBidon}
-            onChange={(e) => setPrecioBidon(Number(e.target.value))}
-            style={inputStyle}
-          />
+          <input type="number" value={precioBidon} onChange={(e) => setPrecioBidon(Number(e.target.value))} style={inputStyle} />
         </Input>
 
-        <label style={{ display: "block", marginBottom: 20 }}>
-          <input
-            type="checkbox"
-            checked={redondear10ml}
-            onChange={(e) => setRedondear10ml(e.target.checked)}
-            style={{ marginRight: 6 }}
-          />
-          Redondear a múltiplos de 10 ml
+        <label style={{ marginBottom: 20, display: "block" }}>
+          <input type="checkbox" checked={redondear10ml} onChange={(e) => setRedondear10ml(e.target.checked)} /> Redondear a múltiplos de 10 ml
         </label>
 
-        <button onClick={generarFicha} style={buttonStyle}>
-          Calcular datos
-        </button>
+        <button onClick={generarFicha} style={buttonStyle}>Calcular datos</button>
 
         {imagenGenerada && (
           <div style={{ marginTop: 20 }}>
-            <a
-              href={imagenGenerada}
-              download="ficha-tecnica.png"
-              style={downloadStyle}
-            >
-              Descargar imagen
-            </a>
-
-            <img
-              src={imagenGenerada}
-              alt="Ficha"
-              style={{ width: "100%", marginTop: 10, borderRadius: 10 }}
-            />
+            <a href={imagenGenerada} download="ficha.png" style={downloadStyle}>Descargar imagen</a>
+            <img src={imagenGenerada} style={{ width: "100%", marginTop: 10, borderRadius: 10 }} />
           </div>
         )}
       </div>
@@ -231,7 +179,6 @@ const inputStyle = {
   marginTop: 5,
   borderRadius: 8,
   border: "1px solid #ddd",
-  fontSize: 14,
 };
 
 const buttonStyle = {
@@ -243,7 +190,6 @@ const buttonStyle = {
   borderRadius: 10,
   fontSize: 16,
   cursor: "pointer",
-  fontWeight: "bold" as const,
 };
 
 const downloadStyle = {
@@ -251,6 +197,6 @@ const downloadStyle = {
   padding: "10px 15px",
   backgroundColor: "#14532d",
   color: "white",
-  textDecoration: "none",
   borderRadius: 8,
+  textDecoration: "none",
 };
