@@ -108,14 +108,39 @@ export default function App() {
       ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
     }
 
-    // NOTA SEGURIDAD
-    ctx.fillStyle = "#b91c1c";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText(
-      "Siempre agregar primero el agua por seguridad",
-      50,
-      550
-    );
+    // LOGO
+    const logo = new Image();
+    logo.src = window.location.origin + "/logo.png";
+
+    logo.onload = () => {
+      ctx.drawImage(logo, 350, 450, 200, 80);
+
+      // NOTA SEGURIDAD
+      ctx.fillStyle = "#b91c1c";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(
+        "Siempre agregar primero el agua por seguridad",
+        50,
+        550
+      );
+
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
+    };
+
+    logo.onerror = () => {
+      // NOTA SEGURIDAD (fallback)
+      ctx.fillStyle = "#b91c1c";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(
+        "Siempre agregar primero el agua por seguridad",
+        50,
+        550
+      );
+
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
+    };
 
     const dataUrl = canvas.toDataURL("image/png");
     setImagenGenerada(dataUrl);
