@@ -101,6 +101,10 @@ export default function App() {
       ctx.fillStyle = "#000";
       ctx.font = "20px Arial";
 
+      ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
+
+      yRight += 35;
+
       ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
     }
 
