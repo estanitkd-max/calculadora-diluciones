@@ -108,14 +108,7 @@ export default function App() {
         ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
       }
 
-      // MENSAJE FINAL
-      ctx.fillStyle = "#ffcccc";
-      ctx.font = "bold 16px Arial";
-      ctx.fillText(
-        "Siempre agregar primero el agua por seguridad",
-        50,
-        550
-      );
+      
 
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
