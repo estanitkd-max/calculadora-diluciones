@@ -2,10 +2,10 @@ import { useState } from "react";
 
 export default function App() {
   const [nombreProducto, setNombreProducto] = useState("");
-  const [tipoProducto] = useState("diluir");
-  const [productoMl, setProductoMl] = useState(0);
-  const [aguaMl, setAguaMl] = useState(0);
-  const [costo, setCosto] = useState(0);
+  const [dilucion, setDilucion] = useState(0);
+  const [litrosPreparar, setLitrosPreparar] = useState(1);
+  const [litrosBidon, setLitrosBidon] = useState(5);
+  const [precioBidon, setPrecioBidon] = useState(0);
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
   const generarFicha = () => {
@@ -13,17 +13,26 @@ export default function App() {
     canvas.width = 800;
     canvas.height = 650;
 
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // 🔢 CÁLCULOS
+    const totalPartes = dilucion + 1;
+
+    const producto = litrosPreparar / totalPartes;
+    const agua = litrosPreparar - producto;
+
+    const costoPorLitro = (precioBidon / litrosBidon) * producto;
+
+    // 🖼️ LOGO
     const logo = new Image();
     logo.src = window.location.origin + "/logo.png";
 
     logo.onload = () => {
-      ctx.drawImage(logo, 600, 40, 150, 80);
+      ctx.drawImage(logo, 600, 30, 160, 90);
       dibujarContenido();
     };
 
@@ -46,22 +55,28 @@ export default function App() {
         y += 40;
       }
 
-      if (tipoProducto === "diluir") {
-        ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
-        y += 40;
-        ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
-        y += 40;
-        ctx.fillText(`Costo: $${costo}`, 50, y);
-        y += 40;
+      ctx.fillText(`Dilución: 1:${dilucion}`, 50, y);
+      y += 40;
 
-        ctx.fillStyle = "#b91c1c";
-        ctx.font = "bold 18px Arial";
-        ctx.fillText(
-          "Siempre se agrega primero el agua, por cuestiones de seguridad",
-          50,
-          y
-        );
-      }
+      ctx.fillText(`Preparación total: ${litrosPreparar} L`, 50, y);
+      y += 40;
+
+      ctx.fillText(`Producto necesario: ${producto.toFixed(2)} L`, 50, y);
+      y += 40;
+
+      ctx.fillText(`Agua necesaria: ${agua.toFixed(2)} L`, 50, y);
+      y += 40;
+
+      ctx.fillText(`Costo por litro listo: $${costoPorLitro.toFixed(2)}`, 50, y);
+      y += 50;
+
+      ctx.fillStyle = "#b91c1c";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(
+        "Siempre agregar primero el agua por cuestiones de seguridad",
+        50,
+        y
+      );
 
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
@@ -82,25 +97,33 @@ export default function App() {
 
       <input
         type="number"
-        placeholder="Producto (ml)"
-        value={productoMl}
-        onChange={(e) => setProductoMl(Number(e.target.value))}
+        placeholder="Dilución (1:X)"
+        value={dilucion}
+        onChange={(e) => setDilucion(Number(e.target.value))}
         style={{ width: "100%", padding: 10, marginBottom: 10 }}
       />
 
       <input
         type="number"
-        placeholder="Agua (ml)"
-        value={aguaMl}
-        onChange={(e) => setAguaMl(Number(e.target.value))}
+        placeholder="Litros a preparar"
+        value={litrosPreparar}
+        onChange={(e) => setLitrosPreparar(Number(e.target.value))}
         style={{ width: "100%", padding: 10, marginBottom: 10 }}
       />
 
       <input
         type="number"
-        placeholder="Costo"
-        value={costo}
-        onChange={(e) => setCosto(Number(e.target.value))}
+        placeholder="Litros del bidón"
+        value={litrosBidon}
+        onChange={(e) => setLitrosBidon(Number(e.target.value))}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
+
+      <input
+        type="number"
+        placeholder="Precio del bidón"
+        value={precioBidon}
+        onChange={(e) => setPrecioBidon(Number(e.target.value))}
         style={{ width: "100%", padding: 10, marginBottom: 20 }}
       />
 
@@ -122,12 +145,27 @@ export default function App() {
 
       {imagenGenerada && (
         <div style={{ marginTop: 20 }}>
-          <a href={imagenGenerada} download="ficha-tecnica.png">
-            Descargar imagen
+          <a
+            href={imagenGenerada}
+            download="ficha-tecnica.png"
+            style={{
+              display: "inline-block",
+              padding: "10px 15px",
+              backgroundColor: "#14532d",
+              color: "white",
+              textDecoration: "none",
+              borderRadius: 6,
+              marginBottom: 10,
+            }}
+          >
+            Descargar ficha
           </a>
-          <div>
-            <img src={imagenGenerada} alt="Ficha generada" style={{ width: "100%", marginTop: 10 }} />
-          </div>
+
+          <img
+            src={imagenGenerada}
+            alt="Ficha generada"
+            style={{ width: "100%" }}
+          />
         </div>
       )}
     </div>
