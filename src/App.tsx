@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export default function App() {
   const [nombreProducto, setNombreProducto] = useState("");
+  const [modoDilucion, setModoDilucion] = useState<"proporcion" | "porcentaje">("proporcion");
   const [dilucion, setDilucion] = useState(0);
   const [litrosPreparar, setLitrosPreparar] = useState(1);
   const [litrosBidon, setLitrosBidon] = useState(5);
@@ -20,16 +21,23 @@ export default function App() {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Cálculos
-    const totalPartes = dilucion + 1;
+    let productoLitros = 0;
+    let aguaLitros = 0;
 
-    const productoLitros = litrosPreparar / totalPartes;
-    const aguaLitros = litrosPreparar - productoLitros;
+    // 🔥 LÓGICA SEGÚN MODO
+    if (modoDilucion === "proporcion") {
+      const totalPartes = dilucion + 1;
+      productoLitros = litrosPreparar / totalPartes;
+      aguaLitros = litrosPreparar - productoLitros;
+    } else {
+      productoLitros = litrosPreparar * (dilucion / 100);
+      aguaLitros = litrosPreparar - productoLitros;
+    }
 
     let productoMl = productoLitros * 1000;
     let aguaMl = aguaLitros * 1000;
 
-    // 🔥 Redondeo
+    // Redondeo
     if (redondear10ml) {
       productoMl = Math.round(productoMl / 10) * 10;
       aguaMl = Math.round(aguaMl / 10) * 10;
@@ -68,7 +76,12 @@ export default function App() {
         y += 40;
       }
 
-      ctx.fillText(`Dilución: 1:${dilucion}`, 50, y);
+      const textoDilucion =
+        modoDilucion === "proporcion"
+          ? `1:${dilucion}`
+          : `${dilucion}%`;
+
+      ctx.fillText(`Dilución: ${textoDilucion}`, 50, y);
       y += 40;
 
       ctx.fillText(`Preparación total: ${litrosPreparar} L`, 50, y);
@@ -110,8 +123,32 @@ export default function App() {
         />
       </div>
 
+      {/* 🔥 SELECTOR DE MODO */}
       <div style={{ marginBottom: 10 }}>
-        <label>Dilución (1:X)</label>
+        <label>Tipo de dilución</label><br />
+        <label>
+          <input
+            type="radio"
+            checked={modoDilucion === "proporcion"}
+            onChange={() => setModoDilucion("proporcion")}
+          /> 1:X
+        </label>
+        <br />
+        <label>
+          <input
+            type="radio"
+            checked={modoDilucion === "porcentaje"}
+            onChange={() => setModoDilucion("porcentaje")}
+          /> %
+        </label>
+      </div>
+
+      <div style={{ marginBottom: 10 }}>
+        <label>
+          {modoDilucion === "proporcion"
+            ? "Dilución (1:X)"
+            : "Porcentaje (%)"}
+        </label>
         <input
           type="number"
           value={dilucion}
@@ -150,7 +187,6 @@ export default function App() {
         />
       </div>
 
-      {/* 🔥 CHECKBOX NUEVO */}
       <div style={{ marginBottom: 20 }}>
         <label>
           <input
