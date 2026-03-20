@@ -9,14 +9,14 @@ export default function App() {
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
   const calcular = () => {
-    if (!dilucion || !litros) return;
+    if (dilucion <= 0 || litros <= 0) return;
 
     const totalMl = litros * 1000;
     const productoMl = Math.round(totalMl / dilucion);
     const aguaMl = totalMl - productoMl;
 
     const costoPorLitro =
-      precioBidon && litrosBidon
+      precioBidon > 0 && litrosBidon > 0
         ? Math.round((precioBidon / litrosBidon / dilucion) * 100) / 100
         : null;
 
@@ -32,83 +32,66 @@ export default function App() {
     canvas.width = 800;
     canvas.height = 650;
 
-    const ctx = canvas.getContext("2d")!
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Fondo blanco
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, 800, 650);
 
-    function dibujarContenido() {
-      // Título
-      ctx.fillStyle = "#14532d";
-      ctx.font = "bold 36px Arial";
-      ctx.fillText("Ficha de Dilución", 50, 80);
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 36px Arial";
+    ctx.fillText("Ficha de Dilución", 50, 80);
 
-      // Subtítulo izquierda
-      ctx.font = "bold 24px Arial";
-      ctx.fillStyle = "#000000";
-      ctx.fillText("Dilución del producto", 50, 140);
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText("Dilución del producto", 50, 140);
+
+    ctx.font = "20px Arial";
+
+    let y = 180;
+
+    if (nombreProducto) {
+      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
+      y += 30;
+    }
+
+    ctx.fillText(`Dilución: 1:${dilucion}`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Preparación: ${litros} L`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
+
+    if (precioBidon > 0) {
+      ctx.font = "bold 22px Arial";
+      ctx.fillText("Costos", 450, 140);
 
       ctx.font = "20px Arial";
+      ctx.fillText(`Precio bidón: $${precioBidon}`, 450, 180);
 
-      let y = 190;
-
-      if (nombreProducto) {
-        ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
-        y += 35;
-      }
-
-      ctx.fillText(`Dilución: 1:${dilucion}`, 50, y);
-      y += 35;
-
-      ctx.fillText(`Preparación: ${litros} L`, 50, y);
-      y += 35;
-
-      ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
-      y += 35;
-
-      ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
-
-      // COSTOS (derecha)
-      if (precioBidon > 0) {
-        ctx.font = "bold 24px Arial";
-        ctx.fillText("Costos", 450, 140);
-
-        ctx.font = "20px Arial";
-
-        ctx.fillText(`Precio bidón: $${precioBidon}`, 450, 190);
-
-        if (costoPorLitro !== null) {
-          ctx.fillText(`Costo por litro: $${costoPorLitro}`, 450, 230);
-        }
+      if (costoPorLitro !== null) {
+        ctx.fillText(`Costo por litro: $${costoPorLitro}`, 450, 210);
       }
     }
 
-    // LOGO
     const logo = new Image();
-    logo.src = window.location.origin + "/logo.png";
+    logo.src = "/logo.png";
 
     logo.onload = () => {
-      dibujarContenido();
-
-      const ancho = 220;
+      const ancho = 200;
       const alto = (logo.height / logo.width) * ancho;
 
-      ctx.drawImage(
-        logo,
-        canvas.width - ancho - 40,
-        canvas.height - alto - 30,
-        ancho,
-        alto
-      );
+      ctx.drawImage(logo, 800 - ancho - 40, 650 - alto - 30, ancho, alto);
 
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
     };
 
     logo.onerror = () => {
-      dibujarContenido();
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
     };
@@ -176,12 +159,13 @@ export default function App() {
 
       {imagenGenerada && (
         <div style={{ marginTop: 20 }}>
-          <a href={imagenGenerada} download="ficha-dilucion.png">
+          <a href={imagenGenerada} download="ficha.png">
             Descargar imagen
           </a>
+
           <img
             src={imagenGenerada}
-            alt="Ficha generada"
+            alt="Ficha"
             style={{ width: "100%", marginTop: 10 }}
           />
         </div>
