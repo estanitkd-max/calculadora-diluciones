@@ -19,15 +19,13 @@ export default function App() {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 🔢 CÁLCULOS
+    // Cálculos
     const totalPartes = dilucion + 1;
-
     const producto = litrosPreparar / totalPartes;
     const agua = litrosPreparar - producto;
-
     const costoPorLitro = (precioBidon / litrosBidon) * producto;
 
-    // 🖼️ LOGO
+    // Logo
     const logo = new Image();
     logo.src = window.location.origin + "/logo.png";
 
@@ -87,45 +85,55 @@ export default function App() {
     <div style={{ padding: 30, fontFamily: "Arial" }}>
       <h2>Calculadora de Diluciones</h2>
 
-      <input
-        type="text"
-        placeholder="Nombre del producto"
-        value={nombreProducto}
-        onChange={(e) => setNombreProducto(e.target.value)}
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
-      />
+      <div style={{ marginBottom: 10 }}>
+        <label>Nombre del producto</label>
+        <input
+          type="text"
+          value={nombreProducto}
+          onChange={(e) => setNombreProducto(e.target.value)}
+          style={{ width: "100%", padding: 10, marginTop: 5 }}
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Dilución (1:X)"
-        value={dilucion}
-        onChange={(e) => setDilucion(Number(e.target.value))}
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
-      />
+      <div style={{ marginBottom: 10 }}>
+        <label>Dilución (1:X)</label>
+        <input
+          type="number"
+          value={dilucion}
+          onChange={(e) => setDilucion(Number(e.target.value))}
+          style={{ width: "100%", padding: 10, marginTop: 5 }}
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Litros a preparar"
-        value={litrosPreparar}
-        onChange={(e) => setLitrosPreparar(Number(e.target.value))}
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
-      />
+      <div style={{ marginBottom: 10 }}>
+        <label>Litros a preparar</label>
+        <input
+          type="number"
+          value={litrosPreparar}
+          onChange={(e) => setLitrosPreparar(Number(e.target.value))}
+          style={{ width: "100%", padding: 10, marginTop: 5 }}
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Litros del bidón"
-        value={litrosBidon}
-        onChange={(e) => setLitrosBidon(Number(e.target.value))}
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
-      />
+      <div style={{ marginBottom: 10 }}>
+        <label>Litros del bidón</label>
+        <input
+          type="number"
+          value={litrosBidon}
+          onChange={(e) => setLitrosBidon(Number(e.target.value))}
+          style={{ width: "100%", padding: 10, marginTop: 5 }}
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Precio del bidón"
-        value={precioBidon}
-        onChange={(e) => setPrecioBidon(Number(e.target.value))}
-        style={{ width: "100%", padding: 10, marginBottom: 20 }}
-      />
+      <div style={{ marginBottom: 20 }}>
+        <label>Precio del bidón</label>
+        <input
+          type="number"
+          value={precioBidon}
+          onChange={(e) => setPrecioBidon(Number(e.target.value))}
+          style={{ width: "100%", padding: 10, marginTop: 5 }}
+        />
+      </div>
 
       <button
         onClick={generarFicha}
