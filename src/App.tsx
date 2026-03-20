@@ -39,8 +39,8 @@ export default function App() {
     ctx.fillRect(0, 0, 800, 650);
 
     ctx.fillStyle = "#14532d";
-    ctx.font = "bold 36px Arial";
-    ctx.fillText("Ficha de Dilución", 50, 80);
+ctx.font = "bold 36px Arial";
+ctx.fillText("Ficha de Dilución", 50, 80);
 
     ctx.fillStyle = "#000";
     ctx.font = "bold 22px Arial";
