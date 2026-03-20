@@ -21,9 +21,14 @@ export default function App() {
 
     // Cálculos
     const totalPartes = dilucion + 1;
-    const producto = litrosPreparar / totalPartes;
-    const agua = litrosPreparar - producto;
-    const costoPorLitro = (precioBidon / litrosBidon) * producto;
+
+    const productoLitros = litrosPreparar / totalPartes;
+    const aguaLitros = litrosPreparar - productoLitros;
+
+    const productoMl = productoLitros * 1000;
+    const aguaMl = aguaLitros * 1000;
+
+    const costoPorLitro = (precioBidon / litrosBidon) * productoLitros;
 
     // Logo
     const logo = new Image();
@@ -59,10 +64,10 @@ export default function App() {
       ctx.fillText(`Preparación total: ${litrosPreparar} L`, 50, y);
       y += 40;
 
-      ctx.fillText(`Producto necesario: ${producto.toFixed(2)} L`, 50, y);
+      ctx.fillText(`Producto necesario: ${productoMl.toFixed(0)} ml`, 50, y);
       y += 40;
 
-      ctx.fillText(`Agua necesaria: ${agua.toFixed(2)} L`, 50, y);
+      ctx.fillText(`Agua necesaria: ${aguaMl.toFixed(0)} ml`, 50, y);
       y += 40;
 
       ctx.fillText(`Costo por litro listo: $${costoPorLitro.toFixed(2)}`, 50, y);
