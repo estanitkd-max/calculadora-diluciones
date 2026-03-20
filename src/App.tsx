@@ -2,199 +2,174 @@ import { useState } from "react";
 
 export default function App() {
   const [nombreProducto, setNombreProducto] = useState("");
-  const [modoDilucion, setModoDilucion] = useState<"proporcion" | "porcentaje">("proporcion");
   const [dilucion, setDilucion] = useState(0);
-  const [litrosPreparar, setLitrosPreparar] = useState(1);
+  const [litros, setLitros] = useState(1);
   const [litrosBidon, setLitrosBidon] = useState(5);
   const [precioBidon, setPrecioBidon] = useState(0);
-  const [redondear10ml, setRedondear10ml] = useState(false);
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
-  const generarFicha = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 900;
-    canvas.height = 600;
+  const calcular = () => {
+    if (dilucion <= 0 || litros <= 0) return;
 
-    const ctx = canvas.getContext("2d")!;
+    const totalMl = litros * 1000;
+    const productoMl = Math.round(totalMl / dilucion);
+    const aguaMl = totalMl - productoMl;
 
-    const fondo = new Image();
-    fondo.src = window.location.origin + "/fondo.png";
-
-    fondo.onload = () => {
-      ctx.drawImage(fondo, 0, 0, canvas.width, canvas.height);
-      dibujarContenido();
-    };
-
-    fondo.onerror = () => {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      dibujarContenido();
-    };
-
-    function dibujarContenido() {
-      let productoLitros = 0;
-      let aguaLitros = 0;
-
-      if (modoDilucion === "proporcion") {
-        const totalPartes = dilucion + 1;
-        productoLitros = litrosPreparar / totalPartes;
-        aguaLitros = litrosPreparar - productoLitros;
-      } else {
-        productoLitros = litrosPreparar * (dilucion / 100);
-        aguaLitros = litrosPreparar - productoLitros;
-      }
-
-      let productoMl = productoLitros * 1000;
-      let aguaMl = aguaLitros * 1000;
-
-      if (redondear10ml) {
-        productoMl = Math.round(productoMl / 10) * 10;
-        aguaMl = Math.round(aguaMl / 10) * 10;
-      } else {
-        productoMl = Math.round(productoMl);
-        aguaMl = Math.round(aguaMl);
-      }
-
-      const costoPorLitro = precioBidon
-        ? (precioBidon / litrosBidon) * productoLitros
+    const costoPorLitro =
+      precioBidon > 0 && litrosBidon > 0
+        ? Math.round((precioBidon / litrosBidon / dilucion) * 100) / 100
         : null;
 
-      // TITULO
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 34px Arial";
-      ctx.fillText("Ficha de Dilución", 50, 60);
+    generarFicha(productoMl, aguaMl, costoPorLitro);
+  };
 
-      // COLUMNA IZQUIERDA
-      let yLeft = 130;
+  const generarFicha = (
+    productoMl: number,
+    aguaMl: number,
+    costoPorLitro: number | null
+  ) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 650;
 
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 800, 650);
+
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 36px Arial";
+    ctx.fillText("Ficha de Dilución", 50, 80);
+
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText("Dilución del producto", 50, 140);
+
+    ctx.font = "20px Arial";
+
+    let y = 180;
+
+    if (nombreProducto) {
+      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
+      y += 30;
+    }
+
+    ctx.fillText(`Dilución: 1:${dilucion}`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Preparación: ${litros} L`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
+    y += 30;
+
+    ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
+
+    if (precioBidon > 0) {
       ctx.font = "bold 22px Arial";
-      ctx.fillText("Dilución del producto", 50, yLeft);
+      ctx.fillText("Costos", 450, 140);
 
-      yLeft += 40;
       ctx.font = "20px Arial";
+      ctx.fillText(`Precio bidón: $${precioBidon}`, 450, 180);
 
-      if (nombreProducto) {
-        ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
-        yLeft += 35;
-      }
-
-      const textoDilucion =
-        modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
-
-      ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
-
-      // COLUMNA DERECHA
       if (costoPorLitro !== null) {
-        let yRight = 130;
-
-        ctx.font = "bold 22px Arial";
-        ctx.fillText("Costos", 500, yRight);
-
-        yRight += 40;
-        ctx.font = "20px Arial";
-
-        ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
-        yRight += 35;
-
-        ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
+        ctx.fillText(`Costo por litro: $${costoPorLitro}`, 450, 210);
       }
+    }
 
-      
+    const logo = new Image();
+    logo.src = "/logo.png";
+
+    logo.onload = () => {
+      const ancho = 200;
+      const alto = (logo.height / logo.width) * ancho;
+
+      ctx.drawImage(logo, 800 - ancho - 40, 650 - alto - 30, ancho, alto);
 
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
-    }
+    };
+
+    logo.onerror = () => {
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
+    };
   };
 
   return (
-    <div style={{ background: "#f5f5f5", minHeight: "100vh", padding: 20, display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 500, background: "white", padding: 25, borderRadius: 16, boxShadow: "0 8px 25px rgba(0,0,0,0.08)" }}>
-        <h2 style={{ color: "#14532d" }}>Suñé Distribuciones</h2>
+    <div style={{ padding: 30, fontFamily: "Arial", maxWidth: 600, margin: "auto" }}>
+      <h2 style={{ color: "#14532d" }}>Calculadora de Diluciones</h2>
 
-        <Input label="Nombre del producto">
-          <input type="text" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} style={inputStyle} />
-        </Input>
+      <input
+        type="text"
+        placeholder="Nombre del producto (opcional)"
+        value={nombreProducto}
+        onChange={(e) => setNombreProducto(e.target.value)}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
 
-        <Input label="Tipo de dilución">
-          <div style={{ display: "flex", gap: 15 }}>
-            <label><input type="radio" checked={modoDilucion === "proporcion"} onChange={() => setModoDilucion("proporcion")} /> 1:X</label>
-            <label><input type="radio" checked={modoDilucion === "porcentaje"} onChange={() => setModoDilucion("porcentaje")} /> %</label>
-          </div>
-        </Input>
+      <input
+        type="number"
+        placeholder="Dilución (1:X)"
+        value={dilucion}
+        onChange={(e) => setDilucion(Number(e.target.value))}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
 
-        <Input label={modoDilucion === "proporcion" ? "Dilución (1:X)" : "Porcentaje (%)"}>
-          <input type="number" value={dilucion} onChange={(e) => setDilucion(Number(e.target.value))} style={inputStyle} />
-        </Input>
+      <input
+        type="number"
+        placeholder="Litros a preparar"
+        value={litros}
+        onChange={(e) => setLitros(Number(e.target.value))}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
 
-        <Input label="Litros a preparar">
-          <input type="number" value={litrosPreparar} onChange={(e) => setLitrosPreparar(Number(e.target.value))} style={inputStyle} />
-        </Input>
+      <input
+        type="number"
+        placeholder="Litros del bidón"
+        value={litrosBidon}
+        onChange={(e) => setLitrosBidon(Number(e.target.value))}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
 
-        <Input label="Litros del bidón">
-          <input type="number" value={litrosBidon} onChange={(e) => setLitrosBidon(Number(e.target.value))} style={inputStyle} />
-        </Input>
+      <input
+        type="number"
+        placeholder="Precio del bidón"
+        value={precioBidon}
+        onChange={(e) => setPrecioBidon(Number(e.target.value))}
+        style={{ width: "100%", padding: 10, marginBottom: 20 }}
+      />
 
-        <Input label="Precio del bidón">
-          <input type="number" value={precioBidon} onChange={(e) => setPrecioBidon(Number(e.target.value))} style={inputStyle} />
-        </Input>
+      <button
+        onClick={calcular}
+        style={{
+          width: "100%",
+          padding: 12,
+          backgroundColor: "#14532d",
+          color: "white",
+          border: "none",
+          borderRadius: 8,
+          fontSize: 16,
+          cursor: "pointer",
+        }}
+      >
+        Calcular datos
+      </button>
 
-        <label style={{ marginBottom: 20, display: "block" }}>
-          <input type="checkbox" checked={redondear10ml} onChange={(e) => setRedondear10ml(e.target.checked)} /> Redondear a múltiplos de 10 ml
-        </label>
+      {imagenGenerada && (
+        <div style={{ marginTop: 20 }}>
+          <a href={imagenGenerada} download="ficha.png">
+            Descargar imagen
+          </a>
 
-        <button onClick={generarFicha} style={buttonStyle}>Calcular datos</button>
-
-        {imagenGenerada && (
-          <div style={{ marginTop: 20 }}>
-            <a href={imagenGenerada} download="ficha.png" style={downloadStyle}>Descargar imagen</a>
-            <img src={imagenGenerada} style={{ width: "100%", marginTop: 10, borderRadius: 10 }} />
-          </div>
-        )}
-      </div>
+          <img
+            src={imagenGenerada}
+            alt="Ficha"
+            style={{ width: "100%", marginTop: 10 }}
+          />
+        </div>
+      )}
     </div>
   );
 }
-
-const Input = ({ label, children }: any) => (
-  <div style={{ marginBottom: 15 }}>
-    <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
-    {children}
-  </div>
-);
-
-const inputStyle = {
-  width: "100%",
-  padding: 12,
-  marginTop: 5,
-  borderRadius: 8,
-  border: "1px solid #ddd",
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: 14,
-  backgroundColor: "#14532d",
-  color: "white",
-  border: "none",
-  borderRadius: 10,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const downloadStyle = {
-  display: "inline-block",
-  padding: "10px 15px",
-  backgroundColor: "#14532d",
-  color: "white",
-  borderRadius: 8,
-  textDecoration: "none",
-};
