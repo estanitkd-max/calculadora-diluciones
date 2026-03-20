@@ -17,133 +17,109 @@ export default function App() {
 
     const ctx = canvas.getContext("2d")!;
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const fondo = new Image();
+    fondo.src = window.location.origin + "/fondo.png";
 
-    let productoLitros = 0;
-    let aguaLitros = 0;
+    fondo.onload = () => {
+      ctx.drawImage(fondo, 0, 0, canvas.width, canvas.height);
+      dibujarContenido();
+    };
 
-    if (modoDilucion === "proporcion") {
-      const totalPartes = dilucion + 1;
-      productoLitros = litrosPreparar / totalPartes;
-      aguaLitros = litrosPreparar - productoLitros;
-    } else {
-      productoLitros = litrosPreparar * (dilucion / 100);
-      aguaLitros = litrosPreparar - productoLitros;
-    }
+    fondo.onerror = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      dibujarContenido();
+    };
 
-    let productoMl = productoLitros * 1000;
-    let aguaMl = aguaLitros * 1000;
+    function dibujarContenido() {
+      let productoLitros = 0;
+      let aguaLitros = 0;
 
-    if (redondear10ml) {
-      productoMl = Math.round(productoMl / 10) * 10;
-      aguaMl = Math.round(aguaMl / 10) * 10;
-    } else {
-      productoMl = Math.round(productoMl);
-      aguaMl = Math.round(aguaMl);
-    }
+      if (modoDilucion === "proporcion") {
+        const totalPartes = dilucion + 1;
+        productoLitros = litrosPreparar / totalPartes;
+        aguaLitros = litrosPreparar - productoLitros;
+      } else {
+        productoLitros = litrosPreparar * (dilucion / 100);
+        aguaLitros = litrosPreparar - productoLitros;
+      }
 
-    const costoPorLitro = precioBidon
-      ? (precioBidon / litrosBidon) * productoLitros
-      : null;
+      let productoMl = productoLitros * 1000;
+      let aguaMl = aguaLitros * 1000;
 
-    // TITULO
-    ctx.fillStyle = "#14532d";
-    ctx.font = "bold 34px Arial";
-    ctx.fillText("Ficha de Dilución", 50, 60);
+      if (redondear10ml) {
+        productoMl = Math.round(productoMl / 10) * 10;
+        aguaMl = Math.round(aguaMl / 10) * 10;
+      } else {
+        productoMl = Math.round(productoMl);
+        aguaMl = Math.round(aguaMl);
+      }
 
-    // LINEA DIVISORIA
-    ctx.strokeStyle = "#ddd";
-    ctx.beginPath();
-    ctx.moveTo(50, 80);
-    ctx.lineTo(850, 80);
-    ctx.stroke();
+      const costoPorLitro = precioBidon
+        ? (precioBidon / litrosBidon) * productoLitros
+        : null;
 
-    // COLUMNA IZQUIERDA
-    let yLeft = 130;
+      // TITULO
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 34px Arial";
+      ctx.fillText("Ficha de Dilución", 50, 60);
 
-    ctx.fillStyle = "#14532d";
-    ctx.font = "bold 22px Arial";
-    ctx.fillText("Dilución del producto", 50, yLeft);
+      // COLUMNA IZQUIERDA
+      let yLeft = 130;
 
-    yLeft += 40;
-    ctx.fillStyle = "#000";
-    ctx.font = "20px Arial";
-
-    if (nombreProducto) {
-      ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
-      yLeft += 35;
-    }
-
-    const textoDilucion =
-      modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
-
-    ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
-    yLeft += 35;
-
-    ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
-    yLeft += 35;
-
-    ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
-    yLeft += 35;
-
-    ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
-
-    // COLUMNA DERECHA (COSTOS)
-    if (costoPorLitro !== null) {
-      let yRight = 130;
-
-      ctx.fillStyle = "#14532d";
       ctx.font = "bold 22px Arial";
-      ctx.fillText("Costos", 500, yRight);
+      ctx.fillText("Dilución del producto", 50, yLeft);
 
-      yRight += 40;
-      ctx.fillStyle = "#000";
+      yLeft += 40;
       ctx.font = "20px Arial";
 
-      ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
+      if (nombreProducto) {
+        ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
+        yLeft += 35;
+      }
 
-      yRight += 35;
+      const textoDilucion =
+        modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
 
-      ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
+      ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
+      yLeft += 35;
+
+      ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
+      yLeft += 35;
+
+      ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
+      yLeft += 35;
+
+      ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
+
+      // COLUMNA DERECHA
+      if (costoPorLitro !== null) {
+        let yRight = 130;
+
+        ctx.font = "bold 22px Arial";
+        ctx.fillText("Costos", 500, yRight);
+
+        yRight += 40;
+        ctx.font = "20px Arial";
+
+        ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
+        yRight += 35;
+
+        ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
+      }
+
+      // MENSAJE FINAL
+      ctx.fillStyle = "#ffcccc";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(
+        "Siempre agregar primero el agua por seguridad",
+        50,
+        550
+      );
+
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
     }
-
-    // LOGO
-    const logo = new Image();
-    logo.src = window.location.origin + "/logo.png";
-
-    logo.onload = () => {
-      ctx.drawImage(logo, 350, 450, 200, 80);
-
-      // NOTA SEGURIDAD
-      ctx.fillStyle = "#b91c1c";
-      ctx.font = "bold 16px Arial";
-      ctx.fillText(
-        "Siempre agregar primero el agua por seguridad",
-        50,
-        550
-      );
-
-      const dataUrl = canvas.toDataURL("image/png");
-      setImagenGenerada(dataUrl);
-    };
-
-    logo.onerror = () => {
-      // NOTA SEGURIDAD (fallback)
-      ctx.fillStyle = "#b91c1c";
-      ctx.font = "bold 16px Arial";
-      ctx.fillText(
-        "Siempre agregar primero el agua por seguridad",
-        50,
-        550
-      );
-
-      const dataUrl = canvas.toDataURL("image/png");
-      setImagenGenerada(dataUrl);
-    };
-
-    const dataUrl = canvas.toDataURL("image/png");
-    setImagenGenerada(dataUrl);
   };
 
   return (
