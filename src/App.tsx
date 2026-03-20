@@ -7,6 +7,7 @@ export default function App() {
   const [litrosBidon, setLitrosBidon] = useState(5);
   const [precioBidon, setPrecioBidon] = useState(0);
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
+  const [redondear10ml, setRedondear10ml] = useState(false);
 
   const generarFicha = () => {
     const canvas = document.createElement("canvas");
@@ -25,8 +26,17 @@ export default function App() {
     const productoLitros = litrosPreparar / totalPartes;
     const aguaLitros = litrosPreparar - productoLitros;
 
-    const productoMl = productoLitros * 1000;
-    const aguaMl = aguaLitros * 1000;
+    let productoMl = productoLitros * 1000;
+    let aguaMl = aguaLitros * 1000;
+
+    // 🔥 Redondeo
+    if (redondear10ml) {
+      productoMl = Math.round(productoMl / 10) * 10;
+      aguaMl = Math.round(aguaMl / 10) * 10;
+    } else {
+      productoMl = Math.round(productoMl);
+      aguaMl = Math.round(aguaMl);
+    }
 
     const costoPorLitro = (precioBidon / litrosBidon) * productoLitros;
 
@@ -64,10 +74,10 @@ export default function App() {
       ctx.fillText(`Preparación total: ${litrosPreparar} L`, 50, y);
       y += 40;
 
-      ctx.fillText(`Producto necesario: ${productoMl.toFixed(0)} ml`, 50, y);
+      ctx.fillText(`Producto necesario: ${productoMl} ml`, 50, y);
       y += 40;
 
-      ctx.fillText(`Agua necesaria: ${aguaMl.toFixed(0)} ml`, 50, y);
+      ctx.fillText(`Agua necesaria: ${aguaMl} ml`, 50, y);
       y += 40;
 
       ctx.fillText(`Costo por litro listo: $${costoPorLitro.toFixed(2)}`, 50, y);
@@ -130,7 +140,7 @@ export default function App() {
         />
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 10 }}>
         <label>Precio del bidón</label>
         <input
           type="number"
@@ -138,6 +148,19 @@ export default function App() {
           onChange={(e) => setPrecioBidon(Number(e.target.value))}
           style={{ width: "100%", padding: 10, marginTop: 5 }}
         />
+      </div>
+
+      {/* 🔥 CHECKBOX NUEVO */}
+      <div style={{ marginBottom: 20 }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={redondear10ml}
+            onChange={(e) => setRedondear10ml(e.target.checked)}
+            style={{ marginRight: 8 }}
+          />
+          Redondear a múltiplos de 10 ml
+        </label>
       </div>
 
       <button
