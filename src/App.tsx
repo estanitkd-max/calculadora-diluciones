@@ -193,7 +193,7 @@ export default function App() {
         </label>
 
         <button onClick={generarFicha} style={buttonStyle}>
-          Generar ficha técnica
+          Calcular datos
         </button>
 
         {imagenGenerada && (
