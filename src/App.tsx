@@ -8,9 +8,18 @@ export default function App() {
   const [litrosBidon, setLitrosBidon] = useState(5);
   const [precioBidon, setPrecioBidon] = useState(0);
   const [redondear10ml, setRedondear10ml] = useState(false);
-  const [copiado, setCopiado] = useState(false);
+  const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
-  const calcular = () => {
+  const generarFicha = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 650;
+
+    const ctx = canvas.getContext("2d")!;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     let productoLitros = 0;
     let aguaLitros = 0;
 
@@ -36,34 +45,48 @@ export default function App() {
 
     const costoPorLitro = (precioBidon / litrosBidon) * productoLitros;
 
-    return { productoMl, aguaMl, costoPorLitro };
-  };
+    ctx.fillStyle = "#14532d";
+    ctx.font = "bold 36px Arial";
+    ctx.fillText("Ficha Técnica", 50, 80);
 
-  const copiarTextoSeguro = (texto: string) => {
-    try {
-      navigator.clipboard.writeText(texto);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = texto;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
+    ctx.fillStyle = "#000";
+    ctx.font = "22px Arial";
+
+    let y = 150;
+
+    if (nombreProducto) {
+      ctx.fillText(`Producto: ${nombreProducto}`, 50, y);
+      y += 40;
     }
-  };
 
-  const copiarWhatsApp = () => {
-    const { productoMl, aguaMl, costoPorLitro } = calcular();
+    const textoDilucion =
+      modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
 
-    const texto = `📦 Producto: ${nombreProducto || "-"}\n🧪 Dilución: ${modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`}\n🪣 Preparación: ${litrosPreparar} L\n\n🔹 Producto: ${productoMl} ml\n🔹 Agua: ${aguaMl} ml\n\n💰 Costo por litro: $${costoPorLitro.toFixed(2)}`;
+    ctx.fillText(`Dilución: ${textoDilucion}`, 50, y);
+    y += 40;
 
-    copiarTextoSeguro(texto);
+    ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, y);
+    y += 40;
 
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
+    ctx.fillText(`Producto: ${productoMl} ml`, 50, y);
+    y += 40;
 
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-    window.open(url, "_blank");
+    ctx.fillText(`Agua: ${aguaMl} ml`, 50, y);
+    y += 40;
+
+    ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 50, y);
+    y += 50;
+
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(
+      "Siempre agregar primero el agua por seguridad",
+      50,
+      y
+    );
+
+    const dataUrl = canvas.toDataURL("image/png");
+    setImagenGenerada(dataUrl);
   };
 
   return (
@@ -94,19 +117,18 @@ export default function App() {
           </p>
         </div>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>Nombre del producto</label>
+        {/** Inputs */}
+        <Input label="Nombre del producto">
           <input
             type="text"
             value={nombreProducto}
             onChange={(e) => setNombreProducto(e.target.value)}
             style={inputStyle}
           />
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>Tipo de dilución</label>
-          <div style={{ display: "flex", gap: 15, marginTop: 5 }}>
+        <Input label="Tipo de dilución">
+          <div style={{ display: "flex", gap: 15 }}>
             <label>
               <input
                 type="radio"
@@ -122,75 +144,86 @@ export default function App() {
               /> %
             </label>
           </div>
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>
-            {modoDilucion === "proporcion" ? "Dilución (1:X)" : "Porcentaje (%)"}
-          </label>
+        <Input label={modoDilucion === "proporcion" ? "Dilución (1:X)" : "Porcentaje (%)"}>
           <input
             type="number"
             value={dilucion}
             onChange={(e) => setDilucion(Number(e.target.value))}
             style={inputStyle}
           />
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>Litros a preparar</label>
+        <Input label="Litros a preparar">
           <input
             type="number"
             value={litrosPreparar}
             onChange={(e) => setLitrosPreparar(Number(e.target.value))}
             style={inputStyle}
           />
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>Litros del bidón</label>
+        <Input label="Litros del bidón">
           <input
             type="number"
             value={litrosBidon}
             onChange={(e) => setLitrosBidon(Number(e.target.value))}
             style={inputStyle}
           />
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 15 }}>
-          <label style={{ fontSize: 13, color: "#555" }}>Precio del bidón</label>
+        <Input label="Precio del bidón">
           <input
             type="number"
             value={precioBidon}
             onChange={(e) => setPrecioBidon(Number(e.target.value))}
             style={inputStyle}
           />
-        </div>
+        </Input>
 
-        <div style={{ marginBottom: 20 }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={redondear10ml}
-              onChange={(e) => setRedondear10ml(e.target.checked)}
-              style={{ marginRight: 6 }}
-            />
-            Redondear a múltiplos de 10 ml
-          </label>
-        </div>
+        <label style={{ display: "block", marginBottom: 20 }}>
+          <input
+            type="checkbox"
+            checked={redondear10ml}
+            onChange={(e) => setRedondear10ml(e.target.checked)}
+            style={{ marginRight: 6 }}
+          />
+          Redondear a múltiplos de 10 ml
+        </label>
 
-        <button onClick={copiarWhatsApp} style={buttonStyle}>
-          📲 Compartir por WhatsApp
+        <button onClick={generarFicha} style={buttonStyle}>
+          Generar ficha técnica
         </button>
 
-        {copiado && (
-          <p style={{ color: "green", textAlign: "center", marginTop: 10 }}>
-            ✔ Copiado correctamente
-          </p>
+        {imagenGenerada && (
+          <div style={{ marginTop: 20 }}>
+            <a
+              href={imagenGenerada}
+              download="ficha-tecnica.png"
+              style={downloadStyle}
+            >
+              Descargar imagen
+            </a>
+
+            <img
+              src={imagenGenerada}
+              alt="Ficha"
+              style={{ width: "100%", marginTop: 10, borderRadius: 10 }}
+            />
+          </div>
         )}
       </div>
     </div>
   );
 }
+
+const Input = ({ label, children }: any) => (
+  <div style={{ marginBottom: 15 }}>
+    <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
+    {children}
+  </div>
+);
 
 const inputStyle = {
   width: "100%",
@@ -211,4 +244,13 @@ const buttonStyle = {
   fontSize: 16,
   cursor: "pointer",
   fontWeight: "bold" as const,
+};
+
+const downloadStyle = {
+  display: "inline-block",
+  padding: "10px 15px",
+  backgroundColor: "#14532d",
+  color: "white",
+  textDecoration: "none",
+  borderRadius: 8,
 };
