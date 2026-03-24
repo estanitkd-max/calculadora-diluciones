@@ -1,200 +1,98 @@
-import { useState } from "react";
+type FichaDilucionProps = {
+  dilucion: number;
+  litrosPreparar: number;
+  productoMl: number;
+  aguaMl: number;
+  precioBidon: number;
+  costoPorLitro: number;
+};
 
-export default function App() {
-  const [nombreProducto, setNombreProducto] = useState("");
-  const [modoDilucion, setModoDilucion] = useState<"proporcion" | "porcentaje">("proporcion");
-  const [dilucion, setDilucion] = useState(0);
-  const [litrosPreparar, setLitrosPreparar] = useState(1);
-  const [litrosBidon, setLitrosBidon] = useState(5);
-  const [precioBidon, setPrecioBidon] = useState(0);
-  const [redondear10ml, setRedondear10ml] = useState(false);
-  const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
-
-  const generarFicha = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 900;
-    canvas.height = 600;
-
-    const ctx = canvas.getContext("2d")!;
-
-    const fondo = new Image();
-    fondo.src = window.location.origin + "/fondo.png";
-
-    fondo.onload = () => {
-      ctx.drawImage(fondo, 0, 0, canvas.width, canvas.height);
-      dibujarContenido();
-    };
-
-    fondo.onerror = () => {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      dibujarContenido();
-    };
-
-    function dibujarContenido() {
-      let productoLitros = 0;
-      let aguaLitros = 0;
-
-      if (modoDilucion === "proporcion") {
-        const totalPartes = dilucion + 1;
-        productoLitros = litrosPreparar / totalPartes;
-        aguaLitros = litrosPreparar - productoLitros;
-      } else {
-        productoLitros = litrosPreparar * (dilucion / 100);
-        aguaLitros = litrosPreparar - productoLitros;
-      }
-
-      let productoMl = productoLitros * 1000;
-      let aguaMl = aguaLitros * 1000;
-
-      if (redondear10ml) {
-        productoMl = Math.round(productoMl / 10) * 10;
-        aguaMl = Math.round(aguaMl / 10) * 10;
-      } else {
-        productoMl = Math.round(productoMl);
-        aguaMl = Math.round(aguaMl);
-      }
-
-      const costoPorLitro = precioBidon
-        ? (precioBidon / litrosBidon) * productoLitros
-        : null;
-
-      // TITULO
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 34px Arial";
-      ctx.fillText("Ficha de Dilución", 50, 60);
-
-      // COLUMNA IZQUIERDA
-      let yLeft = 130;
-
-      ctx.font = "bold 22px Arial";
-      ctx.fillText("Dilución del producto", 50, yLeft);
-
-      yLeft += 40;
-      ctx.font = "20px Arial";
-
-      if (nombreProducto) {
-        ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
-        yLeft += 35;
-      }
-
-      const textoDilucion =
-        modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
-
-      ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
-      yLeft += 35;
-
-      ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
-
-      // COLUMNA DERECHA
-      if (costoPorLitro !== null) {
-        let yRight = 130;
-
-        ctx.font = "bold 22px Arial";
-        ctx.fillText("Costos", 500, yRight);
-
-        yRight += 40;
-        ctx.font = "20px Arial";
-
-        ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
-        yRight += 35;
-
-        ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
-      }
-
-      
-
-      const dataUrl = canvas.toDataURL("image/png");
-      setImagenGenerada(dataUrl);
-    }
-  };
-
+export default function FichaDilucion({
+  dilucion,
+  litrosPreparar,
+  productoMl,
+  aguaMl,
+  precioBidon,
+  costoPorLitro,
+}: FichaDilucionProps) {
   return (
-    <div style={{ background: "#f5f5f5", minHeight: "100vh", padding: 20, display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 500, background: "white", padding: 25, borderRadius: 16, boxShadow: "0 8px 25px rgba(0,0,0,0.08)" }}>
-        <h2 style={{ color: "#14532d" }}>Suñé Distribuciones</h2>
+    <div className="w-full max-w-md rounded-2xl p-6 bg-gradient-to-br from-blue-800 to-blue-600 text-white shadow-lg">
 
-        <Input label="Nombre del producto">
-          <input type="text" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} style={inputStyle} />
-        </Input>
+      <h2 className="text-xl font-semibold mb-4">
+        Ficha de Dilución
+      </h2>
 
-        <Input label="Tipo de dilución">
-          <div style={{ display: "flex", gap: 15 }}>
-            <label><input type="radio" checked={modoDilucion === "proporcion"} onChange={() => setModoDilucion("proporcion")} /> 1:X</label>
-            <label><input type="radio" checked={modoDilucion === "porcentaje"} onChange={() => setModoDilucion("porcentaje")} /> %</label>
+      <div className="grid grid-cols-2 gap-6">
+
+        {/* IZQUIERDA */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 opacity-90">
+            Dilución del producto
+          </h3>
+
+          <div className="space-y-3">
+
+            <div>
+              <div className="text-xs opacity-80">Dilución</div>
+              <div className="text-lg font-semibold">
+                1:{dilucion}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs opacity-80">Preparación</div>
+              <div className="text-lg font-semibold">
+                {litrosPreparar} L
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs opacity-80">Producto</div>
+              <div className="text-2xl font-bold">
+                {productoMl} ml
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs opacity-80">Agua</div>
+              <div className="text-xl font-semibold">
+                {aguaMl} ml
+              </div>
+            </div>
+
           </div>
-        </Input>
+        </div>
 
-        <Input label={modoDilucion === "proporcion" ? "Dilución (1:X)" : "Porcentaje (%)"}>
-          <input type="number" value={dilucion} onChange={(e) => setDilucion(Number(e.target.value))} style={inputStyle} />
-        </Input>
+        {/* DERECHA */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 opacity-90">
+            Costos
+          </h3>
 
-        <Input label="Litros a preparar">
-          <input type="number" value={litrosPreparar} onChange={(e) => setLitrosPreparar(Number(e.target.value))} style={inputStyle} />
-        </Input>
+          <div className="space-y-3">
 
-        <Input label="Litros del bidón">
-          <input type="number" value={litrosBidon} onChange={(e) => setLitrosBidon(Number(e.target.value))} style={inputStyle} />
-        </Input>
+            <div>
+              <div className="text-xs opacity-80">Precio bidón</div>
+              <div className="text-lg font-semibold">
+                ${precioBidon}
+              </div>
+            </div>
 
-        <Input label="Precio del bidón">
-          <input type="number" value={precioBidon} onChange={(e) => setPrecioBidon(Number(e.target.value))} style={inputStyle} />
-        </Input>
+            <div>
+              <div className="text-xs opacity-80">Costo por litro</div>
+              <div className="text-2xl font-bold">
+                ${costoPorLitro}
+              </div>
+            </div>
 
-        <label style={{ marginBottom: 20, display: "block" }}>
-          <input type="checkbox" checked={redondear10ml} onChange={(e) => setRedondear10ml(e.target.checked)} /> Redondear a múltiplos de 10 ml
-        </label>
-
-        <button onClick={generarFicha} style={buttonStyle}>Calcular datos</button>
-
-        {imagenGenerada && (
-          <div style={{ marginTop: 20 }}>
-            <a href={imagenGenerada} download="ficha.png" style={downloadStyle}>Descargar imagen</a>
-            <img src={imagenGenerada} style={{ width: "100%", marginTop: 10, borderRadius: 10 }} />
           </div>
-        )}
+        </div>
+
+      </div>
+
+      <div className="mt-6 flex justify-end opacity-80 text-sm">
+        Suñe Institucional
       </div>
     </div>
   );
 }
-
-const Input = ({ label, children }: any) => (
-  <div style={{ marginBottom: 15 }}>
-    <label style={{ fontSize: 13, color: "#555" }}>{label}</label>
-    {children}
-  </div>
-);
-
-const inputStyle = {
-  width: "100%",
-  padding: 12,
-  marginTop: 5,
-  borderRadius: 8,
-  border: "1px solid #ddd",
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: 14,
-  backgroundColor: "#14532d",
-  color: "white",
-  border: "none",
-  borderRadius: 10,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const downloadStyle = {
-  display: "inline-block",
-  padding: "10px 15px",
-  backgroundColor: "#14532d",
-  color: "white",
-  borderRadius: 8,
-  textDecoration: "none",
-};
