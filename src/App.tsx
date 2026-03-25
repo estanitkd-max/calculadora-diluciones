@@ -13,8 +13,8 @@ export default function App() {
   const generarFicha = () => {
     // 1. Configuramos el lienzo de dibujo (900 de ancho por 600 de alto)
     const canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = 500;
+    canvas.width = 900;
+    canvas.height = 600;
     const ctx = canvas.getContext("2d")!;
 
     // 2. Pintamos el fondo de BLANCO sólido inmediatamente
@@ -55,7 +55,7 @@ export default function App() {
 
       // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
      
-      const marginY = 50; // Separación del borde inferior
+      const marginY = 20; // Separación del borde inferior
 
       const x = (canvas.width / 2) - (anchoFinal / 2);
       const y = canvas.height - altoFinal - marginY; // 600 - alto - 50 = posición vertical
