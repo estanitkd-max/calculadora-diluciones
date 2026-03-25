@@ -54,7 +54,7 @@ export default function App() {
       }
 
       // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
-      const marginX = 100; // Separación del borde derecho
+      const marginX = 75; // Separación del borde derecho
       const marginY = 50; // Separación del borde inferior
 
       const x = canvas.width - anchoFinal - marginX; // 900 - ancho - 50 = posición horizontal
