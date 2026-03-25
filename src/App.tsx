@@ -34,8 +34,8 @@ export default function App() {
 
       // 2. DEFINIMOS EL TAMAÑO MÁXIMO QUE QUEREMOS EN LA FICHA
       // (Podés cambiar estos números si querés el logo más grande o chico)
-      const anchoMaximo = 391; 
-      const altoMaximo = 260;
+      const anchoMaximo = 450; 
+      const altoMaximo = 300;
 
       // 3. CALCULAMOS EL TAMAÑO FINAL MANTENIENDO LA PROPORCIÓN
       // (Esta es la parte "mágica" para que no se vea aplastado)
