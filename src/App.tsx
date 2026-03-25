@@ -50,7 +50,7 @@ export default function App() {
        
 
       const x = (canvas.width / 2) - (anchoFinal / 2);
-      const y = canvas.height - altoFinal + 20; 
+      const y = canvas.height - altoFinal + 60; 
 
       // Dibujamos el logo
       ctx.drawImage(logoNuevo, x, y, anchoFinal, altoFinal);
