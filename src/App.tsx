@@ -55,7 +55,7 @@ export default function App() {
 
       // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
      
-      const marginY = 40; // Separación del borde inferior
+      const marginY = 10; // Separación del borde inferior
 
       const x = (canvas.width / 2) - (anchoFinal / 2);
       const y = canvas.height - altoFinal - marginY; // 600 - alto - 50 = posición vertical
