@@ -11,27 +11,56 @@ export default function App() {
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
   const generarFicha = () => {
+    // 1. Configuramos el lienzo de dibujo (900 de ancho por 600 de alto)
     const canvas = document.createElement("canvas");
     canvas.width = 900;
     canvas.height = 600;
-
     const ctx = canvas.getContext("2d")!;
 
-    const fondo = new Image();
-    fondo.src = window.location.origin + "/fondo.png";
+    // 2. Pintamos el fondo de BLANCO sólido inmediatamente
+    ctx.fillStyle = "#ffffff"; // Color blanco
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Dibuja un rectángulo blanco en toda la ficha
 
-    fondo.onload = () => {
-      ctx.drawImage(fondo, 0, 0, canvas.width, canvas.height);
+    // 3. Preparamos el NUEVO logo (asegurate de tener el archivo "nuevo_logo.png" en la carpeta public)
+    const logoNuevo = new Image();
+    // Importante: El nombre del archivo debe ser exacto. Nosotros asumimos "nuevo_logo.png".
+    logoNuevo.src = window.location.origin + "/nuevo_logo.png";
+
+    // 4. El resto del dibujo solo ocurre CUANDO el logo termina de cargarse
+    logoNuevo.onload = () => {
+      // --- Cálculo de posición para la esquina inferior derecha ---
+      const logoWidth = 150; // El ancho que querés para tu logo nuevo (ajustalo si se ve mal)
+      const logoHeight = 60; // El alto que querés para tu logo nuevo (ajustalo si se ve mal)
+      const marginX = 50;    // Cuántos píxeles de separación del borde derecho
+      const marginY = 50;    // Cuántos píxeles de separación del borde inferior
+
+      const x = canvas.width - logoWidth - marginX; // 900 - 150 - 50 = 700 (posición horizontal)
+      const y = canvas.height - logoHeight - marginY; // 600 - 60 - 50 = 490 (posición vertical)
+
+      // Dibujamos el logo nuevo en su posición
+      ctx.drawImage(logoNuevo, x, y, logoWidth, logoHeight);
+
+      // --- Ahora dibujamos todo el contenido de texto (copiado de tu código original) ---
+      // IMPORTANTE: He cambiado los colores de texto a oscuro para que se vean en fondo blanco
       dibujarContenido();
+
+      // --- Y finalmente, creamos la imagen final para que se vea en la app ---
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
     };
 
-    fondo.onerror = () => {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Manejo de error por si el logo no carga (dibuja la ficha pero sin logo)
+    logoNuevo.onerror = () => {
+      console.error("Error: No se pudo cargar el archivo 'nuevo_logo.png' de la carpeta public.");
+      // Incluso sin logo, pintamos fondo blanco y dibujamos textos para que la app no falle
       dibujarContenido();
+      const dataUrl = canvas.toDataURL("image/png");
+      setImagenGenerada(dataUrl);
     };
 
+    // Aquí definimos la función de dibujo de textos (esta es la misma que ya tenías, pero integrada)
     function dibujarContenido() {
+      // --- (Misma lógica de cálculos original) ---
       let productoLitros = 0;
       let aguaLitros = 0;
 
@@ -59,14 +88,17 @@ export default function App() {
         ? (precioBidon / litrosBidon) * productoLitros
         : null;
 
-      // TITULO
-      ctx.fillStyle = "#ffffff";
+      // --- (Dibujo de textos con colores nuevos para fondo blanco) ---
+      
+      // TITULO: Cambiamos de blanco a verde oscuro (#14532d) para que se vea
+      ctx.fillStyle = "#14532d"; 
       ctx.font = "bold 34px Arial";
       ctx.fillText("Ficha de Dilución", 50, 60);
 
       // COLUMNA IZQUIERDA
       let yLeft = 130;
-
+      // Texto normal: Color gris oscuro (#333333) para mejor lectura en blanco
+      ctx.fillStyle = "#333333"; 
       ctx.font = "bold 22px Arial";
       ctx.fillText("Dilución del producto", 50, yLeft);
 
@@ -95,6 +127,7 @@ export default function App() {
       // COLUMNA DERECHA
       if (costoPorLitro !== null) {
         let yRight = 130;
+        ctx.fillStyle = "#333333"; // Color gris oscuro
 
         ctx.font = "bold 22px Arial";
         ctx.fillText("Costos", 500, yRight);
@@ -107,11 +140,6 @@ export default function App() {
 
         ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
       }
-
-      
-
-      const dataUrl = canvas.toDataURL("image/png");
-      setImagenGenerada(dataUrl);
     }
   };
 
