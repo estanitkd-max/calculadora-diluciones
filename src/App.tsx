@@ -28,19 +28,42 @@ export default function App() {
 
     // 4. El resto del dibujo solo ocurre CUANDO el logo termina de cargarse
     logoNuevo.onload = () => {
-      // --- Cálculo de posición para la esquina inferior derecha ---
-      const logoWidth = 150; // El ancho que querés para tu logo nuevo (ajustalo si se ve mal)
-      const logoHeight = 60; // El alto que querés para tu logo nuevo (ajustalo si se ve mal)
-      const marginX = 50;    // Cuántos píxeles de separación del borde derecho
-      const marginY = 50;    // Cuántos píxeles de separación del borde inferior
+      // 1. OBTENEMOS EL TAMAÑO ORIGINAL DEL LOGO
+      const anchoOriginal = logoNuevo.naturalWidth;
+      const altoOriginal = logoNuevo.naturalHeight;
 
-      const x = canvas.width - logoWidth - marginX; // 900 - 150 - 50 = 700 (posición horizontal)
-      const y = canvas.height - logoHeight - marginY; // 600 - 60 - 50 = 490 (posición vertical)
+      // 2. DEFINIMOS EL TAMAÑO MÁXIMO QUE QUEREMOS EN LA FICHA
+      // (Podés cambiar estos números si querés el logo más grande o chico)
+      const anchoMaximo = 200; 
+      const altoMaximo = 100;
 
-      // Dibujamos el logo nuevo en su posición
-      ctx.drawImage(logoNuevo, x, y, logoWidth, logoHeight);
+      // 3. CALCULAMOS EL TAMAÑO FINAL MANTENIENDO LA PROPORCIÓN
+      // (Esta es la parte "mágica" para que no se vea aplastado)
+      let anchoFinal = anchoOriginal;
+      let altoFinal = altoOriginal;
 
-      // --- Ahora dibujamos todo el contenido de texto (copiado de tu código original) ---
+      // Si es más ancho que el máximo, lo achicamos proporcionalmente
+      if (anchoFinal > anchoMaximo) {
+        altoFinal = (anchoMaximo / anchoFinal) * altoFinal;
+        anchoFinal = anchoMaximo;
+      }
+      // Si después de achicar el ancho, el alto sigue siendo muy grande, achicamos el alto proporcionalmente
+      if (altoFinal > altoMaximo) {
+        anchoFinal = (altoMaximo / altoFinal) * anchoFinal;
+        altoFinal = altoMaximo;
+      }
+
+      // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
+      const marginX = 50; // Separación del borde derecho
+      const marginY = 50; // Separación del borde inferior
+
+      const x = canvas.width - anchoFinal - marginX; // 900 - ancho - 50 = posición horizontal
+      const y = canvas.height - altoFinal - marginY; // 600 - alto - 50 = posición vertical
+
+      // 5. DIBUJAMOS EL LOGO EN SU POSICIÓN Y CON SU TAMAÑO PERFECTO
+      ctx.drawImage(logoNuevo, x, y, anchoFinal, altoFinal);
+
+      // --- El resto sigue igual que antes ---
       // IMPORTANTE: He cambiado los colores de texto a oscuro para que se vean en fondo blanco
       dibujarContenido();
 
