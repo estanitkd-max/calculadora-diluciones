@@ -54,10 +54,10 @@ export default function App() {
       }
 
       // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
-      const marginX = 25; // Separación del borde derecho
+     
       const marginY = 50; // Separación del borde inferior
 
-      const x = canvas.width - anchoFinal - marginX; // 900 - ancho - 50 = posición horizontal
+      const x = (canvas.width / 2) - (anchoFinal / 2);
       const y = canvas.height - altoFinal - marginY; // 600 - alto - 50 = posición vertical
 
       // 5. DIBUJAMOS EL LOGO EN SU POSICIÓN Y CON SU TAMAÑO PERFECTO
