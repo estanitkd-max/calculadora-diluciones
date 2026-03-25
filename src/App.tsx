@@ -47,10 +47,10 @@ export default function App() {
 
       // --- AJUSTE DE POSICIÓN ---
       // Bajamos el marginY a 5 para que esté bien al borde inferior
-      const marginY = 5; 
+       
 
       const x = (canvas.width / 2) - (anchoFinal / 2);
-      const y = canvas.height - altoFinal - marginY; 
+      const y = canvas.height - altoFinal + 10; 
 
       // Dibujamos el logo
       ctx.drawImage(logoNuevo, x, y, anchoFinal, altoFinal);
