@@ -11,79 +11,65 @@ export default function App() {
   const [imagenGenerada, setImagenGenerada] = useState<string | null>(null);
 
   const generarFicha = () => {
-    // 1. Configuramos el lienzo de dibujo (900 de ancho por 600 de alto)
+    // 1. Configuramos el lienzo de dibujo (900 de ancho por 450 de alto)
     const canvas = document.createElement("canvas");
     canvas.width = 900;
     canvas.height = 450;
     const ctx = canvas.getContext("2d")!;
 
-    // 2. Pintamos el fondo de BLANCO sólido inmediatamente
-    ctx.fillStyle = "#ffffff"; // Color blanco
-    ctx.fillRect(0, 0, canvas.width, canvas.height); // Dibuja un rectángulo blanco en toda la ficha
+    // 2. Pintamos el fondo de BLANCO sólido
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Preparamos el NUEVO logo (asegurate de tener el archivo "nuevo_logo.png" en la carpeta public)
+    // 3. Preparamos el logo
     const logoNuevo = new Image();
-    // Importante: El nombre del archivo debe ser exacto. Nosotros asumimos "nuevo_logo.png".
     logoNuevo.src = window.location.origin + "/nuevo_logo.png";
 
-    // 4. El resto del dibujo solo ocurre CUANDO el logo termina de cargarse
+    // 4. El dibujo ocurre cuando el logo carga
     logoNuevo.onload = () => {
-      // 1. OBTENEMOS EL TAMAÑO ORIGINAL DEL LOGO
       const anchoOriginal = logoNuevo.naturalWidth;
       const altoOriginal = logoNuevo.naturalHeight;
 
-      // 2. DEFINIMOS EL TAMAÑO MÁXIMO QUE QUEREMOS EN LA FICHA
-      // (Podés cambiar estos números si querés el logo más grande o chico)
       const anchoMaximo = 450; 
       const altoMaximo = 300;
 
-      // 3. CALCULAMOS EL TAMAÑO FINAL MANTENIENDO LA PROPORCIÓN
-      // (Esta es la parte "mágica" para que no se vea aplastado)
       let anchoFinal = anchoOriginal;
       let altoFinal = altoOriginal;
 
-      // Si es más ancho que el máximo, lo achicamos proporcionalmente
       if (anchoFinal > anchoMaximo) {
         altoFinal = (anchoMaximo / anchoFinal) * altoFinal;
         anchoFinal = anchoMaximo;
       }
-      // Si después de achicar el ancho, el alto sigue siendo muy grande, achicamos el alto proporcionalmente
       if (altoFinal > altoMaximo) {
         anchoFinal = (altoMaximo / altoFinal) * anchoFinal;
         altoFinal = altoMaximo;
       }
 
-      // 4. CALCULAMOS LA POSICIÓN (ABAJO A LA DERECHA)
-     
-      const marginY = 15; // Separación del borde inferior
+      // --- AJUSTE DE POSICIÓN ---
+      // Bajamos el marginY a 5 para que esté bien al borde inferior
+      const marginY = 5; 
 
       const x = (canvas.width / 2) - (anchoFinal / 2);
-      const y = canvas.height - altoFinal - marginY; // 600 - alto - 50 = posición vertical
+      const y = canvas.height - altoFinal - marginY; 
 
-      // 5. DIBUJAMOS EL LOGO EN SU POSICIÓN Y CON SU TAMAÑO PERFECTO
+      // Dibujamos el logo
       ctx.drawImage(logoNuevo, x, y, anchoFinal, altoFinal);
 
-      // --- El resto sigue igual que antes ---
-      // IMPORTANTE: He cambiado los colores de texto a oscuro para que se vean en fondo blanco
+      // Dibujamos los textos
       dibujarContenido();
 
-      // --- Y finalmente, creamos la imagen final para que se vea en la app ---
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
     };
 
-    // Manejo de error por si el logo no carga (dibuja la ficha pero sin logo)
     logoNuevo.onerror = () => {
-      console.error("Error: No se pudo cargar el archivo 'nuevo_logo.png' de la carpeta public.");
-      // Incluso sin logo, pintamos fondo blanco y dibujamos textos para que la app no falle
+      console.error("Error al cargar el logo.");
       dibujarContenido();
       const dataUrl = canvas.toDataURL("image/png");
       setImagenGenerada(dataUrl);
     };
 
-    // Aquí definimos la función de dibujo de textos (esta es la misma que ya tenías, pero integrada)
     function dibujarContenido() {
-      // --- (Misma lógica de cálculos original) ---
       let productoLitros = 0;
       let aguaLitros = 0;
 
@@ -96,71 +82,55 @@ export default function App() {
         aguaLitros = litrosPreparar - productoLitros;
       }
 
-      let productoMl = productoLitros * 1000;
-      let aguaMl = aguaLitros * 1000;
+      let productoMl = Math.round(productoLitros * 1000);
+      let aguaMl = Math.round(aguaLitros * 1000);
 
       if (redondear10ml) {
         productoMl = Math.round(productoMl / 10) * 10;
         aguaMl = Math.round(aguaMl / 10) * 10;
-      } else {
-        productoMl = Math.round(productoMl);
-        aguaMl = Math.round(aguaMl);
       }
 
       const costoPorLitro = precioBidon
         ? (precioBidon / litrosBidon) * productoLitros
         : null;
 
-      // --- (Dibujo de textos con colores nuevos para fondo blanco) ---
-      
-      // TITULO: Cambiamos de blanco a verde oscuro (#14532d) para que se vea
+      // TITULO
       ctx.fillStyle = "#14532d"; 
       ctx.font = "bold 34px Arial";
       ctx.fillText("Ficha de Dilución", 50, 60);
 
       // COLUMNA IZQUIERDA
       let yLeft = 130;
-      // Texto normal: Color gris oscuro (#333333) para mejor lectura en blanco
       ctx.fillStyle = "#333333"; 
       ctx.font = "bold 22px Arial";
       ctx.fillText("Dilución del producto", 50, yLeft);
 
       yLeft += 40;
       ctx.font = "20px Arial";
-
       if (nombreProducto) {
         ctx.fillText(`Producto: ${nombreProducto}`, 50, yLeft);
         yLeft += 35;
       }
-
-      const textoDilucion =
-        modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
-
+      const textoDilucion = modoDilucion === "proporcion" ? `1:${dilucion}` : `${dilucion}%`;
       ctx.fillText(`Dilución: ${textoDilucion}`, 50, yLeft);
       yLeft += 35;
-
       ctx.fillText(`Preparación: ${litrosPreparar} L`, 50, yLeft);
       yLeft += 35;
-
       ctx.fillText(`Producto: ${productoMl} ml`, 50, yLeft);
       yLeft += 35;
-
       ctx.fillText(`Agua: ${aguaMl} ml`, 50, yLeft);
 
       // COLUMNA DERECHA
       if (costoPorLitro !== null) {
         let yRight = 130;
-        ctx.fillStyle = "#333333"; // Color gris oscuro
-
+        ctx.fillStyle = "#333333"; 
         ctx.font = "bold 22px Arial";
         ctx.fillText("Costos", 500, yRight);
 
         yRight += 40;
         ctx.font = "20px Arial";
-
         ctx.fillText(`Precio bidón: $${precioBidon}`, 500, yRight);
         yRight += 35;
-
         ctx.fillText(`Costo por litro: $${costoPorLitro.toFixed(2)}`, 500, yRight);
       }
     }
@@ -222,32 +192,6 @@ const Input = ({ label, children }: any) => (
   </div>
 );
 
-const inputStyle = {
-  width: "100%",
-  padding: 12,
-  marginTop: 5,
-  borderRadius: 8,
-  border: "1px solid #ddd",
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: 14,
-  backgroundColor: "#14532d",
-  color: "white",
-  border: "none",
-  borderRadius: 10,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const downloadStyle = {
-  display: "inline-block",
-  padding: "10px 15px",
-  backgroundColor: "#14532d",
-  color: "white",
-  borderRadius: 8,
-  textDecoration: "none",
-};
-
-
+const inputStyle = { width: "100%", padding: 12, marginTop: 5, borderRadius: 8, border: "1px solid #ddd" };
+const buttonStyle = { width: "100%", padding: 14, backgroundColor: "#14532d", color: "white", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer" };
+const downloadStyle = { display: "inline-block", padding: "10px 15px", backgroundColor: "#14532d", color: "white", borderRadius: 8, textDecoration: "none" };
