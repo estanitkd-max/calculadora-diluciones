@@ -13,8 +13,8 @@ export default function App() {
   const generarFicha = () => {
     // 1. Configuramos el lienzo de dibujo (900 de ancho por 600 de alto)
     const canvas = document.createElement("canvas");
-    canvas.width = 900;
-    canvas.height = 600;
+    canvas.width = 800;
+    canvas.height = 500;
     const ctx = canvas.getContext("2d")!;
 
     // 2. Pintamos el fondo de BLANCO sólido inmediatamente
