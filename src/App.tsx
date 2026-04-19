@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 type Variant = "default" | "blue" | "green";
 
@@ -18,6 +20,9 @@ export default function App() {
     litrosRinde: number;
   }>(null);
   const [error, setError] = useState(false);
+  const [exportando, setExportando] = useState(false);
+
+  const resultadoRef = useRef<HTMLDivElement>(null);
 
   const fmt = (n: number, dec: number) =>
     n.toLocaleString("es-AR", { minimumFractionDigits: dec, maximumFractionDigits: dec });
@@ -63,6 +68,41 @@ export default function App() {
     });
   };
 
+  const exportarImagen = async () => {
+    if (!resultadoRef.current) return;
+    setExportando(true);
+    await new Promise(r => setTimeout(r, 100));
+    const canvas = await html2canvas(resultadoRef.current, {
+      scale: 2,
+      backgroundColor: "#f1f5f9",
+      useCORS: true,
+    });
+    const link = document.createElement("a");
+    link.download = `dilución-${nombre.replace(/\s+/g, "-")}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    setExportando(false);
+  };
+
+  const exportarPDF = async () => {
+    if (!resultadoRef.current) return;
+    setExportando(true);
+    await new Promise(r => setTimeout(r, 100));
+    const canvas = await html2canvas(resultadoRef.current, {
+      scale: 2,
+      backgroundColor: "#f1f5f9",
+      useCORS: true,
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    pdf.save(`dilución-${nombre.replace(/\s+/g, "-")}.pdf`);
+    setExportando(false);
+  };
+
   // Estilos dinámicos
   const trackStyle = (on: boolean): React.CSSProperties => ({
     width: 36, height: 20, borderRadius: 10,
@@ -91,6 +131,23 @@ export default function App() {
     fontWeight: last ? 600 : 400,
   });
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "9px 12px", fontSize: 14,
+    border: "1px solid #cbd5e1", borderRadius: 8,
+    background: "#f8fafc", color: "#0f172a",
+  };
+  const labelStyle: React.CSSProperties = {
+    display: "block", fontSize: 13, color: "#475569", marginBottom: 5,
+  };
+  const cardStyle: React.CSSProperties = {
+    background: "#fff", border: "1px solid #e2e8f0",
+    borderRadius: 14, padding: 20, marginBottom: 12,
+  };
+  const sectionTitleStyle: React.CSSProperties = {
+    fontSize: 11, fontWeight: 600, color: "#94a3b8",
+    textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14,
+  };
+
   const dil = parseFloat(dilucion);
   const litPrep = parseFloat(litrosPrep);
 
@@ -101,6 +158,7 @@ export default function App() {
     }}>
       <div style={{ maxWidth: 520, margin: "0 auto" }}>
 
+        {/* Header */}
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: "#0f172a", margin: 0 }}>
             Calculadora de diluciones
@@ -110,45 +168,38 @@ export default function App() {
           </p>
         </div>
 
-        {/* Card de entrada */}
-        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 20, marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14 }}>
-            Datos del producto
-          </p>
+        {/* Formulario */}
+        <div style={cardStyle}>
+          <p style={sectionTitleStyle}>Datos del producto</p>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 5 }}>Nombre del producto</label>
-            <input style={{ width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #cbd5e1", borderRadius: 8, background: "#f8fafc", color: "#0f172a" }}
-              placeholder="Ej: Suma D10 Desengrasante"
+            <label style={labelStyle}>Nombre del producto</label>
+            <input style={inputStyle} placeholder="Ej: Suma D10 Desengrasante"
               value={nombre} onChange={e => setNombre(e.target.value)} />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 5 }}>Dilución (1 : X)</label>
-              <input style={{ width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #cbd5e1", borderRadius: 8, background: "#f8fafc", color: "#0f172a" }}
-                type="number" placeholder="Ej: 10" min={1}
+              <label style={labelStyle}>Dilución (1 : X)</label>
+              <input style={inputStyle} type="number" placeholder="Ej: 10" min={1}
                 value={dilucion} onChange={e => setDilucion(e.target.value)} />
             </div>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 5 }}>Litros a preparar</label>
-              <input style={{ width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #cbd5e1", borderRadius: 8, background: "#f8fafc", color: "#0f172a" }}
-                type="number" placeholder="Ej: 12" min={0.1} step={0.1}
+              <label style={labelStyle}>Litros a preparar</label>
+              <input style={inputStyle} type="number" placeholder="Ej: 12" min={0.1} step={0.1}
                 value={litrosPrep} onChange={e => setLitrosPrep(e.target.value)} />
             </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 5 }}>Presentación bidón (litros)</label>
-              <input style={{ width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #cbd5e1", borderRadius: 8, background: "#f8fafc", color: "#0f172a" }}
-                type="number" placeholder="Ej: 5" min={0.1} step={0.1}
+              <label style={labelStyle}>Presentación bidón (litros)</label>
+              <input style={inputStyle} type="number" placeholder="Ej: 5" min={0.1} step={0.1}
                 value={litrosBidon} onChange={e => setLitrosBidon(e.target.value)} />
             </div>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 5 }}>Precio del bidón ($)</label>
-              <input style={{ width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #cbd5e1", borderRadius: 8, background: "#f8fafc", color: "#0f172a" }}
-                type="number" placeholder="Ej: 23500" min={1}
+              <label style={labelStyle}>Precio del bidón ($)</label>
+              <input style={inputStyle} type="number" placeholder="Ej: 23500" min={1}
                 value={precioBidon} onChange={e => setPrecioBidon(e.target.value)} />
             </div>
           </div>
@@ -176,54 +227,81 @@ export default function App() {
           Calcular dilución
         </button>
 
+        {/* Resultados + exportación */}
         {resultado && (
           <>
-            {/* Cómo preparar */}
-            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 20, marginBottom: 12 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14 }}>
-                Cómo preparar la solución
-              </p>
-              <div style={{ background: "#f8fafc", borderRadius: 10, padding: 12, marginBottom: 10 }}>
-                <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10, lineHeight: "1.4" }}>
-                  Para preparar {fmt(litPrep, 1)} L de {nombre} (dilución 1:{dil})
-                </p>
-                <div style={prepRowStyle(false)}>
-                  <span style={{ color: "#64748b" }}>Concentrado a usar</span>
-                  <span style={{ color: "#0f172a" }}>{fmtMl(resultado.concentradoMl, redondeo)}</span>
-                </div>
-                <div style={prepRowStyle(false)}>
-                  <span style={{ color: "#64748b" }}>Agua a agregar</span>
-                  <span style={{ color: "#0f172a" }}>{fmtMl(resultado.aguaMl, redondeo)}</span>
-                </div>
-                <div style={prepRowStyle(true)}>
-                  <span style={{ color: "#64748b" }}>Solución total obtenida</span>
-                  <span style={{ color: "#0f172a" }}>{fmt(resultado.solucionL, redondeo ? 1 : 2)} L</span>
+            <div ref={resultadoRef} style={{ padding: "4px 0 8px" }}>
+
+              {/* Cómo preparar */}
+              <div style={cardStyle}>
+                <p style={sectionTitleStyle}>Cómo preparar la solución</p>
+                <div style={{ background: "#f8fafc", borderRadius: 10, padding: 12, marginBottom: 10 }}>
+                  <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10, lineHeight: "1.4" }}>
+                    Para preparar {fmt(litPrep, 1)} L de {nombre} (dilución 1:{dil})
+                  </p>
+                  <div style={prepRowStyle(false)}>
+                    <span style={{ color: "#64748b" }}>Concentrado a usar</span>
+                    <span style={{ color: "#0f172a" }}>{fmtMl(resultado.concentradoMl, redondeo)}</span>
+                  </div>
+                  <div style={prepRowStyle(false)}>
+                    <span style={{ color: "#64748b" }}>Agua a agregar</span>
+                    <span style={{ color: "#0f172a" }}>{fmtMl(resultado.aguaMl, redondeo)}</span>
+                  </div>
+                  <div style={prepRowStyle(true)}>
+                    <span style={{ color: "#64748b" }}>Solución total obtenida</span>
+                    <span style={{ color: "#0f172a" }}>{fmt(resultado.solucionL, redondeo ? 1 : 2)} L</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Análisis de costos */}
+              <div style={cardStyle}>
+                <p style={sectionTitleStyle}>Análisis de costos</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                  <div style={resCardStyle("blue")}>
+                    <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo por litro diluido</p>
+                    <p style={resValStyle("blue")}>{fmtPeso(resultado.costoPorLitro)}</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>independiente de la cantidad</p>
+                  </div>
+                  <div style={resCardStyle("default")}>
+                    <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo de esta preparación</p>
+                    <p style={resValStyle("default")}>{fmtPeso(resultado.costoPreparacion)}</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>para {fmt(litPrep, 1)} L preparados</p>
+                  </div>
+                </div>
+                <div style={resCardStyle("green")}>
+                  <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Litros que rinde el bidón completo</p>
+                  <p style={resValStyle("green")}>{fmt(resultado.litrosRinde, 1)} L</p>
+                  <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>litros de solución lista para usar</p>
+                </div>
+              </div>
+
             </div>
 
-            {/* Análisis de costos */}
-            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 20, marginBottom: 12 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14 }}>
-                Análisis de costos
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-                <div style={resCardStyle("blue")}>
-                  <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo por litro diluido</p>
-                  <p style={resValStyle("blue")}>{fmtPeso(resultado.costoPorLitro)}</p>
-                  <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>independiente de la cantidad</p>
-                </div>
-                <div style={resCardStyle("default")}>
-                  <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo de esta preparación</p>
-                  <p style={resValStyle("default")}>{fmtPeso(resultado.costoPreparacion)}</p>
-                  <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>para {fmt(litPrep, 1)} L preparados</p>
-                </div>
-              </div>
-              <div style={resCardStyle("green")}>
-                <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Litros que rinde el bidón completo</p>
-                <p style={resValStyle("green")}>{fmt(resultado.litrosRinde, 1)} L</p>
-                <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>litros de solución lista para usar</p>
-              </div>
+            {/* Botones de exportación */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
+              <button
+                onClick={exportarImagen}
+                disabled={exportando}
+                style={{
+                  padding: "11px 0", fontSize: 14, fontWeight: 600, cursor: exportando ? "not-allowed" : "pointer",
+                  border: "1px solid #cbd5e1", borderRadius: 10,
+                  background: exportando ? "#f1f5f9" : "#fff", color: exportando ? "#94a3b8" : "#0f172a",
+                }}
+              >
+                {exportando ? "Generando..." : "Exportar imagen"}
+              </button>
+              <button
+                onClick={exportarPDF}
+                disabled={exportando}
+                style={{
+                  padding: "11px 0", fontSize: 14, fontWeight: 600, cursor: exportando ? "not-allowed" : "pointer",
+                  border: "none", borderRadius: 10,
+                  background: exportando ? "#93c5fd" : "#2563eb", color: "#fff",
+                }}
+              >
+                {exportando ? "Generando..." : "Exportar PDF"}
+              </button>
             </div>
           </>
         )}
