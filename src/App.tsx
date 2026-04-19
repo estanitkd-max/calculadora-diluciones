@@ -68,15 +68,25 @@ export default function App() {
     });
   };
 
-  const exportarImagen = async () => {
-    if (!resultadoRef.current) return;
-    setExportando(true);
-    await new Promise(r => setTimeout(r, 100));
-    const canvas = await html2canvas(resultadoRef.current, {
+  const capturarCanvas = async () => {
+    if (!resultadoRef.current) return null;
+    return await html2canvas(resultadoRef.current, {
       scale: 2,
       backgroundColor: "#f1f5f9",
       useCORS: true,
+      // Captura el elemento completo, no solo lo visible en pantalla
+      windowWidth: resultadoRef.current.scrollWidth,
+      windowHeight: resultadoRef.current.scrollHeight,
+      height: resultadoRef.current.scrollHeight,
+      width: resultadoRef.current.scrollWidth,
     });
+  };
+
+  const exportarImagen = async () => {
+    setExportando(true);
+    await new Promise(r => setTimeout(r, 150));
+    const canvas = await capturarCanvas();
+    if (!canvas) { setExportando(false); return; }
     const link = document.createElement("a");
     link.download = `dilución-${nombre.replace(/\s+/g, "-")}.png`;
     link.href = canvas.toDataURL("image/png");
@@ -85,20 +95,31 @@ export default function App() {
   };
 
   const exportarPDF = async () => {
-    if (!resultadoRef.current) return;
     setExportando(true);
-    await new Promise(r => setTimeout(r, 100));
-    const canvas = await html2canvas(resultadoRef.current, {
-      scale: 2,
-      backgroundColor: "#f1f5f9",
-      useCORS: true,
-    });
+    await new Promise(r => setTimeout(r, 150));
+    const canvas = await capturarCanvas();
+    if (!canvas) { setExportando(false); return; }
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const imgWidth = pageWidth - 20;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+
+    // Si el contenido es más largo que una página, lo divide automáticamente
+    if (imgHeight <= pageHeight - 20) {
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    } else {
+      let yOffset = 0;
+      let page = 0;
+      const pageContentHeight = pageHeight - 20;
+      while (yOffset < imgHeight) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", 10, 10 - yOffset, imgWidth, imgHeight);
+        yOffset += pageContentHeight;
+        page++;
+      }
+    }
     pdf.save(`dilución-${nombre.replace(/\s+/g, "-")}.pdf`);
     setExportando(false);
   };
@@ -168,7 +189,7 @@ export default function App() {
           </p>
         </div>
 
-        {/* Formulario */}
+        {/* Formulario — todos los campos en columna única para móvil */}
         <div style={cardStyle}>
           <p style={sectionTitleStyle}>Datos del producto</p>
 
@@ -178,30 +199,28 @@ export default function App() {
               value={nombre} onChange={e => setNombre(e.target.value)} />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={labelStyle}>Dilución (1 : X)</label>
-              <input style={inputStyle} type="number" placeholder="Ej: 10" min={1}
-                value={dilucion} onChange={e => setDilucion(e.target.value)} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={labelStyle}>Litros a preparar</label>
-              <input style={inputStyle} type="number" placeholder="Ej: 12" min={0.1} step={0.1}
-                value={litrosPrep} onChange={e => setLitrosPrep(e.target.value)} />
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Dilución (1 : X)</label>
+            <input style={inputStyle} type="number" placeholder="Ej: 10" min={1}
+              value={dilucion} onChange={e => setDilucion(e.target.value)} />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={labelStyle}>Presentación bidón (litros)</label>
-              <input style={inputStyle} type="number" placeholder="Ej: 5" min={0.1} step={0.1}
-                value={litrosBidon} onChange={e => setLitrosBidon(e.target.value)} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={labelStyle}>Precio del bidón ($)</label>
-              <input style={inputStyle} type="number" placeholder="Ej: 23500" min={1}
-                value={precioBidon} onChange={e => setPrecioBidon(e.target.value)} />
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Litros a preparar</label>
+            <input style={inputStyle} type="number" placeholder="Ej: 12" min={0.1} step={0.1}
+              value={litrosPrep} onChange={e => setLitrosPrep(e.target.value)} />
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Presentación bidón (litros)</label>
+            <input style={inputStyle} type="number" placeholder="Ej: 5" min={0.1} step={0.1}
+              value={litrosBidon} onChange={e => setLitrosBidon(e.target.value)} />
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Precio del bidón ($)</label>
+            <input style={inputStyle} type="number" placeholder="Ej: 23500" min={1}
+              value={precioBidon} onChange={e => setPrecioBidon(e.target.value)} />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
@@ -227,12 +246,11 @@ export default function App() {
           Calcular dilución
         </button>
 
-        {/* Resultados + exportación */}
+        {/* Resultados */}
         {resultado && (
           <>
             <div ref={resultadoRef} style={{ padding: "4px 0 8px" }}>
 
-              {/* Cómo preparar */}
               <div style={cardStyle}>
                 <p style={sectionTitleStyle}>Cómo preparar la solución</p>
                 <div style={{ background: "#f8fafc", borderRadius: 10, padding: 12, marginBottom: 10 }}>
@@ -254,10 +272,11 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Análisis de costos */}
               <div style={cardStyle}>
                 <p style={sectionTitleStyle}>Análisis de costos</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+
+                {/* En móvil los dos cards de costo van en columna */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
                   <div style={resCardStyle("blue")}>
                     <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo por litro diluido</p>
                     <p style={resValStyle("blue")}>{fmtPeso(resultado.costoPorLitro)}</p>
@@ -269,6 +288,7 @@ export default function App() {
                     <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>para {fmt(litPrep, 1)} L preparados</p>
                   </div>
                 </div>
+
                 <div style={resCardStyle("green")}>
                   <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Litros que rinde el bidón completo</p>
                   <p style={resValStyle("green")}>{fmt(resultado.litrosRinde, 1)} L</p>
@@ -279,28 +299,30 @@ export default function App() {
             </div>
 
             {/* Botones de exportación */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
-              <button
-                onClick={exportarImagen}
-                disabled={exportando}
-                style={{
-                  padding: "11px 0", fontSize: 14, fontWeight: 600, cursor: exportando ? "not-allowed" : "pointer",
-                  border: "1px solid #cbd5e1", borderRadius: 10,
-                  background: exportando ? "#f1f5f9" : "#fff", color: exportando ? "#94a3b8" : "#0f172a",
-                }}
-              >
-                {exportando ? "Generando..." : "Exportar imagen"}
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
               <button
                 onClick={exportarPDF}
                 disabled={exportando}
                 style={{
-                  padding: "11px 0", fontSize: 14, fontWeight: 600, cursor: exportando ? "not-allowed" : "pointer",
+                  width: "100%", padding: "12px 0", fontSize: 14, fontWeight: 600,
+                  cursor: exportando ? "not-allowed" : "pointer",
                   border: "none", borderRadius: 10,
                   background: exportando ? "#93c5fd" : "#2563eb", color: "#fff",
                 }}
               >
                 {exportando ? "Generando..." : "Exportar PDF"}
+              </button>
+              <button
+                onClick={exportarImagen}
+                disabled={exportando}
+                style={{
+                  width: "100%", padding: "12px 0", fontSize: 14, fontWeight: 600,
+                  cursor: exportando ? "not-allowed" : "pointer",
+                  border: "1px solid #cbd5e1", borderRadius: 10,
+                  background: exportando ? "#f1f5f9" : "#fff", color: exportando ? "#94a3b8" : "#0f172a",
+                }}
+              >
+                {exportando ? "Generando..." : "Exportar imagen"}
               </button>
             </div>
           </>
