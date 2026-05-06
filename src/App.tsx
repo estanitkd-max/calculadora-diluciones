@@ -242,7 +242,7 @@ export default function App() {
               </div>
               {/* Campo numérico compacto */}
               <div style={{ position: "relative", width: 110, flexShrink: 0 }}>
-                <input style={{ ...inp, paddingRight: 36 }} type="number"
+                <input style={{ ...inp, paddingRight: 36, width: "100%" }} type="number"
                   placeholder={modoDilucion === "ratio" ? "Ej: 10" : "Ej: 5"}
                   min={modoDilucion === "ratio" ? 1 : 0.01}
                   max={modoDilucion === "porcentaje" ? 99.99 : undefined}
