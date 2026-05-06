@@ -3,9 +3,11 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 type Variant = "default" | "blue" | "green";
+type ModoDilucion = "ratio" | "porcentaje";
 
 export default function App() {
   const [nombre, setNombre] = useState("");
+  const [modoDilucion, setModoDilucion] = useState<ModoDilucion>("ratio");
   const [dilucion, setDilucion] = useState("");
   const [litrosPrep, setLitrosPrep] = useState("");
   const [litrosBidon, setLitrosBidon] = useState("");
@@ -18,6 +20,8 @@ export default function App() {
     costoPorLitro: number;
     costoPreparacion: number;
     litrosRinde: number;
+    dilRatio: number;
+    dilPorcentaje: number;
   }>(null);
   const [error, setError] = useState(false);
   const [exportando, setExportando] = useState(false);
@@ -34,20 +38,30 @@ export default function App() {
     return fmt(ml, entero ? 0 : 1) + " ml";
   };
 
+  // Convierte el valor ingresado a ratio 1:X según el modo
+  const getRatio = (): number => {
+    const val = parseFloat(dilucion);
+    if (isNaN(val)) return NaN;
+    if (modoDilucion === "ratio") return val;
+    // Porcentaje → ratio: X = (100 - %) / %
+    if (val <= 0 || val >= 100) return NaN;
+    return (100 - val) / val;
+  };
+
   const calcular = () => {
-    const dil = parseFloat(dilucion);
+    const ratio = getRatio();
     const litPrep = parseFloat(litrosPrep);
     const litBidon = parseFloat(litrosBidon);
     const precio = parseFloat(precioBidon);
 
-    if (!nombre || isNaN(dil) || isNaN(litPrep) || isNaN(litBidon) || isNaN(precio)) {
+    if (!nombre || isNaN(ratio) || isNaN(litPrep) || isNaN(litBidon) || isNaN(precio)) {
       setError(true);
       setResultado(null);
       return;
     }
     setError(false);
 
-    const factor = dil + 1;
+    const factor = ratio + 1;
     const precioPorLitroConc = precio / litBidon;
 
     let concentradoMl = (litPrep / factor) * 1000;
@@ -58,6 +72,14 @@ export default function App() {
       aguaMl = Math.round(aguaMl / 10) * 10;
     }
 
+    const porcentaje = modoDilucion === "porcentaje"
+      ? parseFloat(dilucion)
+      : parseFloat((100 / factor).toFixed(2));
+
+    const ratioMostrar = modoDilucion === "ratio"
+      ? parseFloat(dilucion)
+      : parseFloat(ratio.toFixed(2));
+
     setResultado({
       concentradoMl,
       aguaMl,
@@ -65,6 +87,8 @@ export default function App() {
       costoPorLitro: precioPorLitroConc / factor,
       costoPreparacion: (concentradoMl / 1000) * precioPorLitroConc,
       litrosRinde: litBidon * factor,
+      dilRatio: ratioMostrar,
+      dilPorcentaje: porcentaje,
     });
   };
 
@@ -74,7 +98,6 @@ export default function App() {
       scale: 2,
       backgroundColor: "#f1f5f9",
       useCORS: true,
-      // Captura el elemento completo, no solo lo visible en pantalla
       windowWidth: resultadoRef.current.scrollWidth,
       windowHeight: resultadoRef.current.scrollHeight,
       height: resultadoRef.current.scrollHeight,
@@ -106,7 +129,6 @@ export default function App() {
     const imgWidth = pageWidth - 20;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Si el contenido es más largo que una página, lo divide automáticamente
     if (imgHeight <= pageHeight - 20) {
       pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
     } else {
@@ -169,8 +191,16 @@ export default function App() {
     textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 14,
   };
 
-  const dil = parseFloat(dilucion);
   const litPrep = parseFloat(litrosPrep);
+
+  // Preview de la conversión en tiempo real
+  const ratioPreview = getRatio();
+  const porcentajePreview = modoDilucion === "ratio" && !isNaN(ratioPreview)
+    ? parseFloat((100 / (ratioPreview + 1)).toFixed(2))
+    : null;
+  const ratioDesdePorc = modoDilucion === "porcentaje" && !isNaN(ratioPreview)
+    ? parseFloat(ratioPreview.toFixed(2))
+    : null;
 
   return (
     <div style={{
@@ -189,7 +219,7 @@ export default function App() {
           </p>
         </div>
 
-        {/* Formulario — todos los campos en columna única para móvil */}
+        {/* Formulario */}
         <div style={cardStyle}>
           <p style={sectionTitleStyle}>Datos del producto</p>
 
@@ -199,10 +229,70 @@ export default function App() {
               value={nombre} onChange={e => setNombre(e.target.value)} />
           </div>
 
+          {/* Selector de modo + campo dilución */}
           <div style={{ marginBottom: 12 }}>
-            <label style={labelStyle}>Dilución (1 : X)</label>
-            <input style={inputStyle} type="number" placeholder="Ej: 10" min={1}
-              value={dilucion} onChange={e => setDilucion(e.target.value)} />
+            <label style={labelStyle}>Dilución</label>
+
+            {/* Toggle ratio / porcentaje */}
+            <div style={{ display: "flex", marginBottom: 8, borderRadius: 8, overflow: "hidden", border: "1px solid #cbd5e1" }}>
+              <button
+                onClick={() => { setModoDilucion("ratio"); setDilucion(""); }}
+                style={{
+                  flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 500,
+                  border: "none", cursor: "pointer",
+                  background: modoDilucion === "ratio" ? "#2563eb" : "#f8fafc",
+                  color: modoDilucion === "ratio" ? "#fff" : "#475569",
+                  transition: "all .15s",
+                }}
+              >
+                Ratio 1 : X
+              </button>
+              <button
+                onClick={() => { setModoDilucion("porcentaje"); setDilucion(""); }}
+                style={{
+                  flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 500,
+                  border: "none", borderLeft: "1px solid #cbd5e1", cursor: "pointer",
+                  background: modoDilucion === "porcentaje" ? "#2563eb" : "#f8fafc",
+                  color: modoDilucion === "porcentaje" ? "#fff" : "#475569",
+                  transition: "all .15s",
+                }}
+              >
+                Porcentaje %
+              </button>
+            </div>
+
+            {/* Campo de entrada según modo */}
+            <div style={{ position: "relative" }}>
+              <input
+                style={{ ...inputStyle, paddingRight: 48 }}
+                type="number"
+                placeholder={modoDilucion === "ratio" ? "Ej: 10" : "Ej: 5"}
+                min={modoDilucion === "ratio" ? 1 : 0.01}
+                max={modoDilucion === "porcentaje" ? 99.99 : undefined}
+                step={modoDilucion === "porcentaje" ? 0.01 : 1}
+                value={dilucion}
+                onChange={e => setDilucion(e.target.value)}
+              />
+              <span style={{
+                position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                fontSize: 13, color: "#94a3b8", pointerEvents: "none",
+              }}>
+                {modoDilucion === "ratio" ? "1:X" : "%"}
+              </span>
+            </div>
+
+            {/* Conversión en tiempo real */}
+            {dilucion && !isNaN(ratioPreview) && (
+              <div style={{
+                marginTop: 6, padding: "6px 10px", background: "#f0fdf4",
+                border: "1px solid #bbf7d0", borderRadius: 6, fontSize: 12, color: "#15803d",
+              }}>
+                {modoDilucion === "ratio"
+                  ? `Equivale al ${fmt(porcentajePreview!, 2)}% de concentrado`
+                  : `Equivale a dilución 1:${fmt(ratioDesdePorc!, 2)}`
+                }
+              </div>
+            )}
           </div>
 
           <div style={{ marginBottom: 12 }}>
@@ -236,6 +326,7 @@ export default function App() {
         {error && (
           <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#b91c1c", marginBottom: 10 }}>
             Por favor completá todos los campos antes de calcular.
+            {modoDilucion === "porcentaje" && " El porcentaje debe ser entre 0.01 y 99.99."}
           </div>
         )}
 
@@ -253,9 +344,20 @@ export default function App() {
 
               <div style={cardStyle}>
                 <p style={sectionTitleStyle}>Cómo preparar la solución</p>
+
+                {/* Muestra ambas expresiones de la dilución */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <span style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, padding: "4px 10px", fontSize: 12, color: "#1d4ed8", fontWeight: 500 }}>
+                    1 : {fmt(resultado.dilRatio, 2)}
+                  </span>
+                  <span style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 6, padding: "4px 10px", fontSize: 12, color: "#15803d", fontWeight: 500 }}>
+                    {fmt(resultado.dilPorcentaje, 2)} %
+                  </span>
+                </div>
+
                 <div style={{ background: "#f8fafc", borderRadius: 10, padding: 12, marginBottom: 10 }}>
                   <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10, lineHeight: "1.4" }}>
-                    Para preparar {fmt(litPrep, 1)} L de {nombre} (dilución 1:{dil})
+                    Para preparar {fmt(litPrep, 1)} L de {nombre}
                   </p>
                   <div style={prepRowStyle(false)}>
                     <span style={{ color: "#64748b" }}>Concentrado a usar</span>
@@ -274,8 +376,6 @@ export default function App() {
 
               <div style={cardStyle}>
                 <p style={sectionTitleStyle}>Análisis de costos</p>
-
-                {/* En móvil los dos cards de costo van en columna */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
                   <div style={resCardStyle("blue")}>
                     <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Costo por litro diluido</p>
@@ -288,7 +388,6 @@ export default function App() {
                     <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>para {fmt(litPrep, 1)} L preparados</p>
                   </div>
                 </div>
-
                 <div style={resCardStyle("green")}>
                   <p style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Litros que rinde el bidón completo</p>
                   <p style={resValStyle("green")}>{fmt(resultado.litrosRinde, 1)} L</p>
@@ -298,7 +397,7 @@ export default function App() {
 
             </div>
 
-            {/* Botones de exportación */}
+            {/* Botones exportación */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
               <button
                 onClick={exportarPDF}
@@ -319,7 +418,8 @@ export default function App() {
                   width: "100%", padding: "12px 0", fontSize: 14, fontWeight: 600,
                   cursor: exportando ? "not-allowed" : "pointer",
                   border: "1px solid #cbd5e1", borderRadius: 10,
-                  background: exportando ? "#f1f5f9" : "#fff", color: exportando ? "#94a3b8" : "#0f172a",
+                  background: exportando ? "#f1f5f9" : "#fff",
+                  color: exportando ? "#94a3b8" : "#0f172a",
                 }}
               >
                 {exportando ? "Generando..." : "Exportar imagen"}
