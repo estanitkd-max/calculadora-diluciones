@@ -153,7 +153,7 @@ export default function App() {
   });
 
   const inp: React.CSSProperties = {
-    width: "100%", padding: "9px 12px", fontSize: 14,
+    width: 200, padding: "9px 12px", fontSize: 14,
     border: "1px solid #cbd5e1", borderRadius: 8,
     background: "#f8fafc", color: "#0f172a",
   };
